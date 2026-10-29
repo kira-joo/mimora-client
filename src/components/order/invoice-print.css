@@ -1,0 +1,26 @@
+/*
+ * The invoice prints as an A4 sheet and nothing else: no site chrome, no canvas, no controls (`print:hidden` on the
+ * toolbar). The layout renders announcement bar, header, footer and notices as direct children of <body> beside
+ * <main>, so "every body child but main" is the chrome — scoped with :has() to a page that carries an invoice, and
+ * to print, so no other page and no screen view is touched. Colours are ink on white by design — see InvoiceView.
+ */
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  body:has(.invoice-sheet) > :not(main) {
+    display: none !important;
+  }
+
+  .invoice-canvas {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .invoice-sheet tr,
+  .invoice-sheet section {
+    break-inside: avoid;
+  }
+}

@@ -1,0 +1,236 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/*
+ * App tokens exposed to Tailwind as utilities (`bg-canvas`, `text-ink`,
+ * `font-display` …). `@theme inline` keeps them references, so the ground
+ * flip and the merchant's brand reach every utility without a rebuild.
+ *
+ * The toolkit's `theme.css` is deliberately not imported: it maps the admin
+ * `--ftk-*` roles and scans the toolkit's component output, and the
+ * storefront renders none of those components (CLAUDE.md: "consumes the
+ * toolkit sparingly").
+ */
+@theme inline {
+  --color-canvas: var(--sf-canvas);
+  --color-surface: var(--sf-surface);
+  --color-surface-muted: var(--sf-surface-muted);
+  --color-ink: var(--sf-ink);
+  --color-ink-secondary: var(--sf-ink-secondary);
+  --color-ink-muted: var(--sf-ink-muted);
+  --color-line: var(--sf-line);
+  --color-line-strong: var(--sf-line-strong);
+  --color-action: var(--sf-action);
+  --color-action-hover: var(--sf-action-hover);
+  --color-on-action: var(--sf-on-action);
+  --color-support: var(--sf-support);
+  --color-on-support: var(--sf-on-support);
+  --color-focus: var(--sf-focus);
+  --color-positive: var(--sf-positive);
+  --color-caution: var(--sf-caution);
+  --color-critical: var(--sf-critical);
+  --color-on-media: var(--sf-on-media);
+
+  --font-display: var(--sf-font-display);
+  --font-sans: var(--sf-font-sans);
+  --font-mono: var(--sf-font-mono);
+
+  --radius-control: var(--sf-radius-control);
+
+  --ease-standard: var(--sf-ease-standard);
+  --ease-exit: var(--sf-ease-exit);
+}
+
+@layer base {
+  html {
+    background: var(--sf-canvas);
+    color: var(--sf-ink);
+    font-family: var(--sf-font-sans);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--sf-canvas);
+    font-size: var(--sf-text-body);
+    line-height: 1.7;
+    overflow-x: clip;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--sf-focus);
+    outline-offset: 2px;
+  }
+
+  /* Tabular figures for anything that is read as a number (§6). */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Latin codes only — Plex Mono has no Arabic (§6). Always isolated. */
+  .code {
+    font-family: var(--sf-font-mono);
+    font-size: 0.8125rem;
+    unicode-bidi: isolate;
+    direction: ltr;
+  }
+}
+
+@layer components {
+  /* Type scale — §6. Nothing below 1.2 leading; tracking capped at 0.02em; no uppercase labels. */
+  .t-display {
+    font-family: var(--sf-font-display);
+    font-size: var(--sf-text-display);
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    font-weight: 600;
+  }
+  .t-title {
+    font-family: var(--sf-font-display);
+    font-size: var(--sf-text-title);
+    line-height: 1.25;
+    font-weight: 600;
+  }
+  .t-heading {
+    font-family: var(--sf-font-display);
+    font-size: var(--sf-text-heading);
+    line-height: 1.35;
+    font-weight: 600;
+  }
+  .t-label {
+    font-size: var(--sf-text-label);
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+  }
+  .t-price {
+    font-family: var(--sf-font-display);
+    font-size: var(--sf-text-price);
+    line-height: 1.2;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .container-sf {
+    width: 100%;
+    max-width: var(--sf-container);
+    margin-inline: auto;
+    padding-inline: var(--sf-gutter);
+  }
+
+  /* §12 — the media treatment: square, contained on light, dissolving on dark. */
+  .media {
+    position: relative;
+    overflow: hidden;
+    background: var(--sf-surface-muted);
+    box-shadow: var(--sf-media-shadow);
+  }
+  .media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: var(--sf-media-ring), var(--sf-media-edge);
+  }
+  .media > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /*
+     * A light, uniform grade — the merchant's own photographs are shot under
+     * different light and backdrops (a studio portrait, an outdoor flat lay,
+     * a workshop interior); without this the grid reads as unrelated photos
+     * rather than one considered set. Subtle enough to leave colour honest.
+     */
+    filter: saturate(0.97) contrast(1.03);
+  }
+
+  /* §10 — the rule: a thin measured line with ticks running from the reading-start edge. */
+  .rule {
+    position: relative;
+    height: 9px;
+    border-block-end: 1px solid var(--sf-line-strong);
+    background-image: repeating-linear-gradient(to right, var(--sf-line-strong) 0 1px, transparent 1px 24px);
+    background-size: 100% 5px;
+    background-repeat: no-repeat;
+    background-position: left bottom;
+  }
+  [dir="rtl"] .rule {
+    background-image: repeating-linear-gradient(to left, var(--sf-line-strong) 0 1px, transparent 1px 24px);
+    background-position: right bottom;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding-inline: 1.25rem;
+    border-radius: var(--sf-radius-control);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition:
+      background-color var(--sf-duration-fast) var(--sf-ease-standard),
+      color var(--sf-duration-fast) var(--sf-ease-standard),
+      border-color var(--sf-duration-fast) var(--sf-ease-standard);
+  }
+  .btn-primary {
+    background: var(--sf-action);
+    color: var(--sf-on-action);
+  }
+  .btn-primary:hover {
+    background: var(--sf-action-hover);
+  }
+  .btn-primary:disabled {
+    background: var(--sf-surface-muted);
+    color: var(--sf-ink-muted);
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    border: 1px solid var(--sf-line-strong);
+    color: var(--sf-ink);
+    background: transparent;
+  }
+  .btn-secondary:hover {
+    border-color: var(--sf-ink);
+  }
+
+  .field {
+    width: 100%;
+    min-height: 48px;
+    padding-inline: 0.875rem;
+    border: 1px solid var(--sf-line-strong);
+    border-radius: var(--sf-radius-control);
+    background: var(--sf-surface);
+    color: var(--sf-ink);
+    font-size: 1rem; /* ≥16px — no zoom on focus in mobile Safari */
+  }
+}
+
+/* The phone's sticky buy bar is fixed; the page reserves its height so it never covers the end of the footer. */
+@media (max-width: 1023px) {
+  body:has(.sf-pdp) footer,
+  body:has(.sf-cart) footer {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+   * Motion wrappers are server-rendered in their initial (hidden) state; the
+   * preference is only known after hydration. This makes the final state the
+   * first paint for these visitors — a genuine non-animated path (§14).
+   */
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+}

@@ -1,0 +1,53 @@
+# store-platform — environment (storefront)
+#
+# THIS IS THE REVIEWED CONTENT FOR `.env.example`. Tooling here may not write `.env*` paths, so
+# install it with:  sed '3,6d' docs/env-example.txt > .env.example   (drops these 4 lines; commit it, delete
+# this file).
+#
+# Placeholders only; never commit a real value. Locally copy to .env.local; in a deployment
+# these live in the host's secret store (docs/deployment.md). None of these is ever
+# NEXT_PUBLIC_: the browser must never learn the backend's origin, so every value is SERVER-ONLY.
+#
+# Declared once in src/lib/config/env-validation.ts — a test fails when `src` reads a variable
+# that table does not declare. Checked against .env.example by docs/tasks/check-env-example.mjs
+# (workspace root).
+#
+# Kind
+#   REQUIRED    production boot refuses without it; SITE_URL also stops a production BUILD (STORE_ID does not)
+#   CAPABILITY  switches a feature on; unset is announced once at boot
+#   OPTIONAL    has a safe default
+# Scope
+#   [per store]       one deployment serves one store: this value differs between stores
+#   [per environment] differs between production, preview and local even for one store
+#   [pair]            must equal the matching value in that store's backend deployment
+#   [secret]          generate it (openssl rand -base64 48)
+
+# ── REQUIRED ──────────────────────────────────────────────────────────
+# [per store] [per environment] The backend's origin (that store's store-platform-staff).
+# https in production unless both services share a private network; plain http is accepted
+# without comment only for a loopback host (a local production run).
+STAFF_API_URL=http://localhost:3040
+# [per store] [per environment] This storefront's public origin, https in production (loopback
+# excepted). A production BUILD throws without it. Used for metadataBase, canonical links,
+# hreflang, the sitemap and robots.
+SITE_URL=http://localhost:3030
+# [per store] [pair: backend STORE_ID] This deployment's store id: a lowercase slug (a-z, 0-9, hyphens; 1-40
+# characters; no leading or trailing hyphen). It must EQUAL the backend's STORE_ID: the storefront asks the backend
+# (GET {STAFF_API_URL}/api/storefront/identity) who it is and refuses to send anything to, or use anything from, a
+# backend that answers as a different store. Boot refuses to start without it. Not a secret. Only boot requires it:
+# a production build without it still succeeds (catalog reads degrade to their absent state).
+STORE_ID=mimora
+# [per store] [pair: backend STORE_TIMEZONE] The store's IANA time zone.
+STORE_TIMEZONE=Africa/Cairo
+
+# ── CAPABILITY ────────────────────────────────────────────────────────
+# [per store] [secret] [pair: backend REVALIDATE_SECRET] Cache-invalidation secret. The backend's
+# STOREFRONT_REVALIDATE_URL must point at https://<this storefront>/api/revalidate. Unset:
+# invalidation is OFF, announced once at boot, and prerendered prices lag by the 300s safety net.
+REVALIDATE_SECRET=
+
+# ── OPTIONAL ──────────────────────────────────────────────────────────
+# 1 only behind a proxy that overwrites X-Real-IP; otherwise leave empty.
+TRUST_X_REAL_IP=
+# 1 serves the /preview design baseline in a production build. Leave unset in production.
+DESIGN_PREVIEW=

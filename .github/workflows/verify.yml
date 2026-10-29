@@ -1,0 +1,100 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches:
+      - staging
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Configure npm for GitHub Packages
+        run: |
+          echo "@kira-joo:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.PACKAGES_READ_TOKEN }}" >> .npmrc
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      # Includes the design-token guard's own test: each rule is fed a planted violation.
+      - run: npm test
+
+      # `prebuild` runs the design-token guard against the real tree. No backend is needed: catalog
+      # reads degrade to empty and generateStaticParams to [] (D-15), so a build never depends on data.
+      - name: Build
+        env:
+          STAFF_API_URL: http://localhost:3040
+          SITE_URL: https://store.example.com
+          # Not required by the build (only boot requires STORE_ID), and no backend answers at the URL above. Set so
+          # the build exercises the real D-15 path (identity check -> unreachable -> absent state) instead of the
+          # "STORE_ID not set" configuration error, which would log a misleading error per catalog read.
+          STORE_ID: store-build
+        run: npm run build
+
+  # The configuration proof: the full funnel, the accessibility pass and the viewport sweep — both
+  # locales, both grounds — against two deliberately different merchants. If one codebase renders
+  # both correctly, the reusability contract holds; if not, this fails instead of the next client.
+  configuration-proof:
+    runs-on: ubuntu-latest
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        store: [store-a, store-b]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: store-platform
+
+      # The backend is a private sibling repository: STORE_REPOS_TOKEN needs contents:read on it.
+      - uses: actions/checkout@v4
+        with:
+          repository: kira-joo/store-platform-staff
+          ref: staging
+          token: ${{ secrets.STORE_REPOS_TOKEN }}
+          path: store-platform-staff
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            store-platform/package-lock.json
+            store-platform-staff/package-lock.json
+
+      - name: Configure npm for GitHub Packages
+        run: |
+          for repo in store-platform store-platform-staff; do
+            echo "@kira-joo:registry=https://npm.pkg.github.com" >> $repo/.npmrc
+            echo "//npm.pkg.github.com/:_authToken=${{ secrets.PACKAGES_READ_TOKEN }}" >> $repo/.npmrc
+          done
+
+      - run: npm ci
+        working-directory: store-platform-staff
+      - run: npm ci
+        working-directory: store-platform
+      - run: npx playwright install --with-deps chromium
+        working-directory: store-platform
+
+      - name: Configuration proof (${{ matrix.store }})
+        working-directory: store-platform
+        env:
+          BACKEND_DIR: ${{ github.workspace }}/store-platform-staff
+          ARTIFACT_DIR: ${{ github.workspace }}/proof-${{ matrix.store }}
+        run: scripts/ci/configuration-proof.sh ${{ matrix.store }}
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-${{ matrix.store }}
+          path: proof-${{ matrix.store }}

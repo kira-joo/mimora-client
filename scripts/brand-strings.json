@@ -1,0 +1,20 @@
+{
+  "reason": "Any merchant identity string found in src/ (outside the isolated design preview) means a merchant leaked into the platform code. The platform renders ANY merchant from StoreProfile content; a store name, tagline, contact domain or address committed to source breaks that silently. Matching is case-insensitive and Arabic is compared with diacritics (U+064B-U+0652) and tatweel stripped. Derived from every fixture merchant: the preview/store-a merchant (src/preview/fixtures/catalog.ts, store-platform-staff/scripts/fixtures/stores/store-a.mjs) and the second-store fixture (store-b.mjs). A new fixture merchant adds its identity here.",
+  "strings": [
+    "Hirfa",
+    "حِرفة",
+    "hirfa.example",
+    "hirfa@",
+    "Hirfa workshop",
+    "Clothes and tools, made to be used for years",
+    "ملابس وعُدد تُصنع لتُستخدم سنوات",
+    "Mohamed Mazhar",
+    "محمد مظهر",
+    "Qahwa & Co",
+    "Qahwa",
+    "قهوة وشركاه",
+    "qahwa-co.example",
+    "Slow coffee and everyday kitchen things",
+    "قهوة بطيئة وأدوات مطبخ لكل يوم"
+  ]
+}

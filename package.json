@@ -1,0 +1,46 @@
+{
+  "name": "mimora-client",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "node scripts/verify-design-tokens.mjs",
+    "dev": "next dev",
+    "prebuild": "node scripts/verify-design-tokens.mjs",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "verify:tokens": "node scripts/verify-design-tokens.mjs"
+  },
+  "dependencies": {
+    "@kira-joo/frontend-toolkit-core": "^1.0.0",
+    "@kira-joo/frontend-toolkit-tailwind": "^1.1.1",
+    "@kira-joo/toolkit-common": "^1.0.0",
+    "@tanstack/react-query": "^5.104.2",
+    "axios": "^1.20.0",
+    "lucide-react": "^0.462.0",
+    "motion": "^13.5.0",
+    "next": "^16.4.2",
+    "next-intl": "^4.14.9",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.90.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "jsdom": "^25.0.1",
+    "playwright": "^1.64.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.0.0",
+    "vitest": "^2.1.9"
+  }
+}

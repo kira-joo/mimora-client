@@ -1,30 +1,46 @@
-# store-platform — storefront
+# mimora-client — Mimora storefront
 
-Customer-facing online store. This file is the working contract for this
-repository. Authoritative detail lives in `docs/MDS.md`; the cross-repo contract
-lives in `../docs/store/04-cross-repo-architecture.md`. This stays short and
-states only what must never be got wrong.
+Mimora's customer-facing online store — a gift boutique serving Egypt. This file
+is the working contract for this repository. Authoritative detail lives in
+`docs/MDS.md` (inherited from the template: where it describes a reusable
+multi-merchant platform, this file wins). This stays short and states only what
+must never be got wrong.
+
+## Repository model — one brand, one repository pair, one deployment
+
+- **This repository is Mimora's, and only Mimora's.** It serves exactly one
+  store, verified at boot: `STORE_ID=mimora` must equal the id the backend
+  (`mimora-staff`) reports from its own database, or the storefront refuses to
+  talk to it. There is no tenant switching, and none may be added.
+- **It was created from the reusable template** `store-platform@1915687`. The
+  template is a source, never a dependency: nothing here may import, read, build
+  from or check out `store-platform*`. A template improvement reaches Mimora only
+  by being ported here deliberately, and Mimora-specific work never flows back.
+- **A future brand gets its own repository pair and deployment** — never a
+  second store inside this one.
 
 ## What this application is
 
-A merchant's own online store: **discover → browse and filter → product →
-variant selection → cart → checkout → pay → order → track → account**.
+Mimora's online store: **discover → browse and filter → product → variant
+selection → cart → checkout → pay → order → track → account**. It is a commerce
+funnel, not a content site.
 
-It is a commerce funnel, not a content site. It is not a marketplace, not an
-aggregator, and not a template.
+**Mimora's visual identity is implemented here, in code**: layout, typography,
+colour tokens, ornaments (hearts, ribbons, gingham), motion and the brand assets
+under `public/brand/mimora/`. There is no theme or style selector, and the
+backend holds no design settings beyond the store profile it already has.
 
-**The merchant is content, not identity.** Store name, logo, imagery, brand
-colours, typography choice, copy, catalog, categories, collections, prices,
-contact details, social links, shipping zones, pickup locations, operating hours,
-payment destinations, theme configuration and business settings are all data.
-Changing them produces a different store on the same codebase. See `docs/MDS.md`
-§17.
+**Store data stays data.** Catalog, categories, collections, products, prices,
+stock, images of products, announcement, navigation, home-section content,
+contact details, zones, payment methods and business settings are managed in
+`mimora-staff` and read from it. Never hardcode a product, price, stock level or
+any other value the content model holds into a component.
 
 ## Sibling repositories
 
-This repo sits beside independent sibling repositories, including the backoffice
-(`store-platform-staff`, which is also this app's backend) and a set of shared
-`@kira-joo/*` packages published to GitHub Packages. There is no monorepo
+This repo sits beside independent sibling repositories, including its backoffice
+and backend (`mimora-staff`) and a set of shared `@kira-joo/*` packages published
+to GitHub Packages — the only intentional shared code. There is no monorepo
 tooling, no shared lockfile, and no root `package.json`.
 
 **Never work from a remembered list of packages or versions — derive them:**
@@ -62,9 +78,13 @@ and cannot — see non-negotiable 5 and `../docs/store/02-restaurant-pair-audit.
 
 ## Non-negotiables
 
-1. **No brand value in source.** No hex colour, phone number, social URL, store
-   name, or marketing copy in `src/`. `predev`/`prebuild` fails the build on
-   violations. If a literal is genuinely correct, add a reviewed exemption
+1. **Design values are tokens; store data is not source.** Colours, durations
+   and easings live only in `src/styles/tokens.css`; `predev`/`prebuild`
+   (`scripts/verify-design-tokens.mjs`) fails the build on a literal elsewhere,
+   and on any CI-fixture merchant identity (`scripts/brand-strings.json`) leaking
+   into `src/`. Phone numbers, social URLs, product data and other store data come
+   from the backend, never from source. UI chrome copy lives in the next-intl
+   message files. If a literal is genuinely correct, add a reviewed exemption
    stating why — never delete the rule.
 2. **Money is never a float.** `Money` is `Decimal` in major units. Currency is
    not part of an amount — format through `moneyView(currency, locale)`.
@@ -156,11 +176,15 @@ way, say so precisely and state what was verified instead.
 - Contrast gates run on both grounds. A failure in dark/`ar` fails as loudly as
   one in light/`en`.
 - Automated accessibility pass on every route; keyboard traversal of the funnel.
-- **The configuration proof:** the full funnel must also pass against the
-  second-store fixture, which differs in currency, zones, payment methods,
-  **theme configuration** and enabled capabilities. If it renders two visibly
-  different stores correctly, the reusability contract holds. **This runs in CI**,
-  not by memory.
+- **The CI storefront proof** (`scripts/ci/configuration-proof.sh`, run in CI):
+  the full funnel, accessibility and viewport gates run against a production
+  build seeded with a **fictional CI fixture shop** — never Mimora's catalog —
+  in a throwaway `store-fixture-*` database, under **two settings profiles**
+  (`ci-default`, `ci-alternate`). The profiles cover the capability states the
+  owner can switch in `mimora-staff`: guest checkout on and off (refused by the
+  server, not merely hidden), COD and transfer-with-receipt payments, pickup,
+  minimum order, flat and per-zone fees, tax added and included, light and dark
+  default ground. It is not a multi-store feature.
 
 ## Testing floor
 

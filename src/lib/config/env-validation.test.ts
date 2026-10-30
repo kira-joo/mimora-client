@@ -64,9 +64,8 @@ describe("capability and optional variables are never fatal", () => {
     expect(prod({ ...REQUIRED, REVALIDATE_SECRET: "r".repeat(40) }).notices).toEqual([]);
   });
 
-  it("flags the design preview left on in production and a malformed TRUST_X_REAL_IP", () => {
-    const text = prod({ ...REQUIRED, DESIGN_PREVIEW: "1", TRUST_X_REAL_IP: "yes" }).notices.map((notice) => notice.message).join("\n");
-    expect(text).toMatch(/DESIGN_PREVIEW is on/);
+  it("flags a malformed TRUST_X_REAL_IP", () => {
+    const text = prod({ ...REQUIRED, TRUST_X_REAL_IP: "yes" }).notices.map((notice) => notice.message).join("\n");
     expect(text).toMatch(/TRUST_X_REAL_IP must be 1/);
   });
 

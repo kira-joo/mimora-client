@@ -7,7 +7,7 @@ import { CacheTag, isKnownCacheTag } from "./cache-tag";
  * updates, silently. Change both sides together.
  */
 describe("cache-tag contract", () => {
-  it("matches the tags store-platform-staff emits, byte for byte", () => {
+  it("matches the tags mimora-staff emits, byte for byte", () => {
     expect(Object.values(CacheTag).sort()).toEqual(
       ["BRANDS", "CATEGORIES", "COLLECTIONS", "CONTENT", "DELIVERY_ZONES", "FULFILMENT_SETTINGS", "OPERATING_HOURS", "PAGES", "PAYMENT_SETTINGS", "PICKUP_LOCATIONS", "PRODUCTS", "PROMOTIONS", "SIZE_GUIDES", "STORE_PROFILE"].sort()
     );

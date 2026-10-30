@@ -2,7 +2,7 @@
  * Translation between the backend's customer cookies and this app's own.
  * Pure — no Next imports — so it is unit-tested directly.
  *
- * Backend names (store-platform-staff core/auth/customer-session-cookies.ts):
+ * Backend names (mimora-staff core/auth/customer-session-cookies.ts):
  *   store_customer_session — access JWT, path /, 15 min
  *   store_customer_refresh — rotating refresh token, path /api/shop/auth, 30 d
  *   store_customer_marker  — "1", path /, 30 d

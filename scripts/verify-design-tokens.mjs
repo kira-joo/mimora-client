@@ -4,9 +4,6 @@
  * Runs on predev/prebuild; exits 1 on any violation.
  *
  * Scans src/**\/*.{ts,tsx,css}. NOT scanned, by design:
- *  - src/preview/** and src/app/preview/**: the isolated design preview. It holds
- *    mock merchant data on purpose and never ships: a production build 404s it
- *    unless DESIGN_PREVIEW=1.
  *  - *.test.ts / *.test.tsx: tests legitimately contain fixture literals.
  *  - src/styles/tokens.css is THE token layer: hex values (and cubic-bezier /
  *    durations) are allowed there and only there.
@@ -28,9 +25,7 @@ const ROOT = process.env.VERIFY_TOKENS_ROOT ?? join(fileURLToPath(new URL(".", i
 const SRC = join(ROOT, "src");
 const TOKENS = "src/styles/tokens.css";
 
-const SKIP_DIRS = ["src/preview", "src/app/preview"];
-const isSkipped = (rel) =>
-  SKIP_DIRS.some((d) => rel === d || rel.startsWith(d + "/")) || /\.test\.tsx?$/.test(rel);
+const isSkipped = (rel) => /\.test\.tsx?$/.test(rel);
 
 /**
  * Reviewed exemptions: { rule: [{ file, pattern?, reason }] }. `pattern` (a
@@ -144,7 +139,7 @@ for (const rel of files) {
   });
 }
 
-console.log(`verify-design-tokens: scanned ${files.length} files (${all.length - files.length} excluded: preview/tests).`);
+console.log(`verify-design-tokens: scanned ${files.length} files (${all.length - files.length} excluded: tests).`);
 if (files.length === 0) {
   console.error("verify-design-tokens: scanned 0 files; the guard is not measuring anything.");
   process.exit(1);

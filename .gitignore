@@ -67,3 +67,6 @@ Thumbs.db
 
 # Misc
 .vercel
+
+# Configuration-proof fixture photos, copied in from mimora-staff at proof time (scripts/ci/configuration-proof.sh)
+/public/preview/

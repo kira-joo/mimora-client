@@ -3,7 +3,7 @@
 > **Status: prepared, never performed.** Nothing described here has been deployed. No account, project, domain
 > or credential was created, and no value below is real. The owner creates the services and fills in the secrets.
 > The app refuses to build or boot in production when a required variable is missing or unusable (names printed,
-> values never). The backend's counterpart is `../../store-platform-staff/docs/deployment.md`; read both — the two
+> values never). The backend's counterpart is `../../mimora-staff/docs/deployment.md`; read both — the two
 > services are deployed as a pair. What can only be verified once deployed is listed at the end.
 
 The storefront is a Next.js application that holds **no secret except one** (`REVALIDATE_SECRET`) and no database.
@@ -50,7 +50,6 @@ None is `NEXT_PUBLIC_`; the boot gate reports a `NEXT_PUBLIC_` look-alike of the
 | `STORE_TIMEZONE` | required | no | IANA zone, equal to the backend's. |
 | `REVALIDATE_SECRET` | capability | **yes** | `openssl rand -base64 48`, equal to the backend's. Unset: invalidation is OFF (announced). |
 | `TRUST_X_REAL_IP` | optional | no | `1` only behind a proxy that overwrites `X-Real-IP`. |
-| `DESIGN_PREVIEW` | optional | no | Leave unset in production (`1` would publish `/preview`). |
 
 `NODE_ENV` and `NEXT_PHASE` are set by Next. **Previews are production-mode builds**: the same gate applies, so
 give each preview a `SITE_URL` (its own https origin) and point `STAFF_API_URL` at a **non-production** backend.
@@ -131,7 +130,7 @@ address this app forwards is probably replaced, and per-address limits would poo
 
 Every step is an external action for the owner; none has been done.
 
-1. Deploy the backend first (`../../store-platform-staff/docs/deployment.md`): database, secrets, first Owner, and its
+1. Deploy the backend first (`../../mimora-staff/docs/deployment.md`): database, secrets, first Owner, and its
    `STORE_ID` with the one-time identity adoption for its database.
 2. Create the Vercel project from this repository (framework Next.js, Node 24); add the private-registry credential.
 3. Set `STAFF_API_URL`, `SITE_URL`, `STORE_ID` (the same value the backend has), `STORE_TIMEZONE`, `REVALIDATE_SECRET`
@@ -165,5 +164,5 @@ Replace `shop.example.com` with the real origin. Tick each; record what was seen
 - Cookie `Secure`/`SameSite` and the refresh path scoping across the real pair of domains.
 - The backend's request reaching `/api/revalidate` through Vercel's protection layer.
 - Whether the forwarded client address survives Vercel's proxy (expected: it does not).
-- Behaviour when the backend is slow or restarting, rather than simply down. (Reachable-but-wrong is the identity check above; it is covered by unit tests and the CI configuration proof, not by a deployed run.)
+- Behaviour when the backend is slow or restarting, rather than simply down. (Reachable-but-wrong is the identity check above; it is covered by unit tests and the CI storefront proof, not by a deployed run.)
 - That the identity check leaves the ISR catalog pages static in a deployed build: it deliberately calls Next's unpatched fetch (a `no-store` call through the patched one would mark a static render dynamic). Confirm with `x-nextjs-cache: HIT` on a catalog page after deploy.

@@ -23,9 +23,6 @@ import { resolveLocaleRedirect, type StoreLocales } from "./i18n/store-locales";
  *
  * It reads nothing that could make a catalog route dynamic: only `/account`
  * paths consult cookies at all.
- *
- * `/preview` is the isolated design preview with its own root layout; it is
- * excluded so locale routing never rewrites it.
  */
 const ACCOUNT = /^\/(?:ar|en)\/account(?:\/|$)/;
 
@@ -65,6 +62,6 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except API routes, Next internals, the design preview, and files with an extension.
-  matcher: ["/((?!api|_next|_vercel|preview|.*\\..*).*)"],
+  // Everything except API routes, Next internals, and files with an extension.
+  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 };

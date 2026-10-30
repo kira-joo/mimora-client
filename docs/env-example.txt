@@ -1,4 +1,4 @@
-# store-platform — environment (storefront)
+# mimora-client — environment (storefront)
 #
 # THIS IS THE REVIEWED CONTENT FOR `.env.example`. Tooling here may not write `.env*` paths, so
 # install it with:  sed '3,6d' docs/env-example.txt > .env.example   (drops these 4 lines; commit it, delete
@@ -23,7 +23,7 @@
 #   [secret]          generate it (openssl rand -base64 48)
 
 # ── REQUIRED ──────────────────────────────────────────────────────────
-# [per store] [per environment] The backend's origin (that store's store-platform-staff).
+# [per store] [per environment] The backend's origin (that store's mimora-staff).
 # https in production unless both services share a private network; plain http is accepted
 # without comment only for a loopback host (a local production run).
 STAFF_API_URL=http://localhost:3040
@@ -49,5 +49,3 @@ REVALIDATE_SECRET=
 # ── OPTIONAL ──────────────────────────────────────────────────────────
 # 1 only behind a proxy that overwrites X-Real-IP; otherwise leave empty.
 TRUST_X_REAL_IP=
-# 1 serves the /preview design baseline in a production build. Leave unset in production.
-DESIGN_PREVIEW=

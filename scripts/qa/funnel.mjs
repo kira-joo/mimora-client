@@ -24,7 +24,7 @@ const manifest = process.env.FIXTURE_MANIFEST ? JSON.parse(readFileSync(process.
 const store = await discover();
 const browser = await launch();
 const phone = () => `010${String(Date.now()).slice(-8)}`;
-const image = fileURLToPath(new URL("../../public/preview/images/tool-roll.jpg", import.meta.url));
+const image = fileURLToPath(new URL("./fixtures/receipt.jpg", import.meta.url));
 console.log(`funnel: ${base} — ${store.products.length} products (${store.purchasable.length} purchasable, ${store.soldOut.length} sold out)${manifest ? `, asserting manifest for ${manifest.store}` : ""}`);
 
 async function context(width = 1280) {
@@ -44,7 +44,7 @@ async function context(width = 1280) {
 
 /**
  * Navigate: wait for `load`, then for network idle on a best-effort basis. Playwright's network-idle
- * wait can stall forever on a long single-tab journey (measured 2026-10-21, store-b): it keeps counting
+ * wait can stall forever on a long single-tab journey (measured 2026-10-21, on the transfer-only fixture profile, now ci-alternate): it keeps counting
  * requests from the PREVIOUS page whose completion it never registered, while both servers answered
  * everything in < 100ms. Each journey asserts its own outcome, so idle is a convenience, not a check.
  */

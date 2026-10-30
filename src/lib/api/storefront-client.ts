@@ -2,7 +2,7 @@ import "server-only";
 /*
  * `/server`, never the root barrel: the root bundles React-context modules and
  * crashes any Server Component that imports it with `createContext is not a
- * function` (store-platform/CLAUDE.md).
+ * function` (mimora-client/CLAUDE.md).
  */
 import { createApiClient, fetchAdapter, joinUrl, type ApiClient, type RequestAdapter } from "@kira-joo/frontend-toolkit-core/server";
 import { verifyBackendIdentity } from "../config/backend-identity";

@@ -13,7 +13,7 @@ export function staffApiUrl(): string {
   return value;
 }
 
-/** The secret the backend sends in `X-Revalidate-Secret` (store-platform-staff publish-revalidation.ts). */
+/** The secret the backend sends in `X-Revalidate-Secret` (mimora-staff publish-revalidation.ts). */
 export function revalidateSecret(): string | undefined {
   return process.env.REVALIDATE_SECRET || undefined;
 }

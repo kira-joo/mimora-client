@@ -5,7 +5,7 @@
 //
 // Needs: the backend running WITH CLOUDINARY_* set (it refuses with 503 otherwise — reported as
 // BLOCKED, never as a pass), the storefront in front of it, a store offering a proof-required method
-// to guests (Hirfa: WALLET / INSTAPAY), and staff access:
+// to guests (the ci-default fixture profile: WALLET / INSTAPAY), and staff access:
 //   STOREFRONT_URL (default http://localhost:3030)  BACKEND_URL (default http://localhost:3040)
 //   OWNER_EMAIL, OWNER_PASSWORD
 //   WAIT_FOR_EXPIRY=1   also waits out the 5-minute signed-link lifetime and checks the link dies.
@@ -15,7 +15,7 @@ import { addLine, discover, launch } from "./lib.mjs";
 
 const base = (process.env.STOREFRONT_URL ?? "http://localhost:3030").replace(/\/$/, "");
 const backend = (process.env.BACKEND_URL ?? "http://localhost:3040").replace(/\/$/, "");
-const receipt = fileURLToPath(new URL("../../public/preview/images/tool-roll.jpg", import.meta.url));
+const receipt = fileURLToPath(new URL("./fixtures/receipt.jpg", import.meta.url));
 const results = [];
 const report = (state, check, detail) => { results.push(state); console.log(`${state.padEnd(7)} ${check}: ${detail}`); };
 const check = (name, ok, detail) => report(ok ? "PASS" : "FAIL", name, detail);

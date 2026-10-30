@@ -40,7 +40,7 @@ function variablesRead(): Map<string, string> {
 describe("environment inventory", () => {
   it("finds the reads it is supposed to find (a scanner that matches nothing proves nothing)", () => {
     const read = variablesRead();
-    for (const name of ["STAFF_API_URL", "REVALIDATE_SECRET", "SITE_URL", "STORE_TIMEZONE", "TRUST_X_REAL_IP", "DESIGN_PREVIEW", "NODE_ENV"]) expect(read.has(name), name).toBe(true);
+    for (const name of ["STAFF_API_URL", "REVALIDATE_SECRET", "SITE_URL", "STORE_TIMEZONE", "TRUST_X_REAL_IP", "NODE_ENV"]) expect(read.has(name), name).toBe(true);
   });
 
   it("every variable src reads is declared in env-validation.ts", () => {

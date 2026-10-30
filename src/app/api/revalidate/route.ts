@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 /**
  * The receiving end of cache invalidation (architecture.md §6). The backend's
  * route factory POSTs `{ tags }` here with `X-Revalidate-Secret` after every
- * successful admin mutation (store-platform-staff publish-revalidation.ts).
+ * successful admin mutation (mimora-staff publish-revalidation.ts).
  *
  * Its absence was the third silence in the composition that once left
  * prerendered pages serving a stale price indefinitely while the cart charged

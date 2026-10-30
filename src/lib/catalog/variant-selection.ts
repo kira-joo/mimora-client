@@ -3,7 +3,7 @@ import type { MatrixVariant } from "@/lib/api/types";
 /*
  * Client-side variant selection over the compact matrix (MDS §10). Same
  * semantics as the backend's `resolveSelectableValues`/`resolveExactVariant`
- * (store-platform-staff engines/variant-matrix): availability is existential —
+ * (mimora-staff engines/variant-matrix): availability is existential —
  * a value is selectable iff at least one PURCHASABLE variant carries it AND
  * matches every other current selection. Never per-axis conjunction.
  *

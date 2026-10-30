@@ -1,7 +1,7 @@
-# `store-platform` — asset requirements
+# `mimora-client` — asset requirements
 
 What the merchant must supply, and what the storefront guarantees in return.
-Written because **the media treatment in `design-system.md` §12 is conditional on
+Written because **the storefront's media treatment is conditional on
 photography the merchant controls**, and a platform sold to more than one
 merchant cannot leave that implicit.
 
@@ -38,7 +38,6 @@ ground failed too — a light ring is invisible against a bright photograph.
 only**, fading the photograph's outer edge into the ground. A white sweep stops
 reading as a hard rectangle; the product's centre is untouched, so colour
 fidelity is preserved; a dark photograph is unaffected and still dissolves.
-Details and the trade-off in `design-system.md` §12.
 
 Still invisible to the merchant, and it does not constrain what they may shoot —
 which was the point.
@@ -62,9 +61,9 @@ that produces a worse store precisely when it is ignored.
 | Count | `[ASSUMPTION]` 1 required, up to 8 per product, up to 4 per variant |
 | Alt text | **Authored in the backoffice, per locale, never generated.** Decorative imagery gets empty `alt` |
 
-**Hand tools and hardware carry one extra requirement:** at least one image must
-establish **scale** — in the hand, or beside a rule. A chisel photographed alone
-against a sweep is unbuyable, and "42 mm" does not fix it for most people. This
+**Small objects (mugs, cups, accessories) carry one extra requirement:** at least one image must
+establish **scale** — in the hand, or beside a familiar object. A mug photographed alone
+against a sweep is unbuyable, and "350 ml" does not fix it for most people. This
 is a merchandising requirement, not a technical one, and it belongs in this
 document because nothing in the code can enforce it.
 
@@ -78,7 +77,7 @@ document because nothing in the code can enforce it.
 | Favicon | `[ASSUMPTION]` 32px and 180px raster plus SVG |
 | OG image | 1200×630, per locale, **text baked in at a size that survives a feed's own compression** |
 | Hero media | 16:9 minimum, and it must tolerate a bottom scrim without losing its subject — the scrim is where type sits |
-| Brand colours | Fills only. Validated against both grounds at write time, falling back to the derived value. See `design-system.md` §8 |
+| Brand colours | Fills only. Validated against both grounds at write time, falling back to the derived value. |
 
 ---
 

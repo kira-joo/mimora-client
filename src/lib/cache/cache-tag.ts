@@ -1,5 +1,5 @@
 /*
- * The cache-tag vocabulary — the exact strings store-platform-staff PUBLISHES
+ * The cache-tag vocabulary — the exact strings mimora-staff PUBLISHES
  * from its admin routes' `revalidateTags` (measured from source, 2026-10-13).
  *
  * Duplicated rather than shared, deliberately: packages carry zero domain

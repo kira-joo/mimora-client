@@ -1,4 +1,4 @@
-# `store-platform` — Storefront MDS
+# `mimora-client` — Storefront MDS
 
 The master specification for the customer-facing storefront. The workspace
 `CLAUDE.md` outranks this document; `../docs/store/04-cross-repo-architecture.md`
@@ -482,11 +482,13 @@ value is ever read at render time by a component; components use tokens only.**
    than the restaurant's does** — that one matches phone numbers and social URLs
    but **not** arbitrary brand names or marketing copy, which its own
    documentation implies it catches.
-2. **A second-store fixture** — a deliberately different demo merchant: different
-   name, palette, typography, currency, zones, payment methods, enabled
-   capabilities **and theme configuration**. §4.6 asks for the last one and it
-   matters: *a derived dark palette tested against one brand's colours has not
-   been tested.*
+2. **A CI fixture shop in two settings profiles** — one fictional gift shop
+   (never Mimora's catalog) seeded as `ci-default` and `ci-alternate`: different
+   payment methods, guest checkout, pickup, minimum order, fee and tax modes,
+   zones, enabled capabilities **and theme configuration** (default ground,
+   brand colours). §4.6 asks for the last one and it matters: *a derived dark
+   palette tested against one brand's colours has not been tested.* This proves
+   the owner's switches are honoured; it is not a multi-store feature.
 
 **Both run in CI.** Neither restaurant repo has any CI at all, which is why its
 fixture — genuinely adversarial, and it did catch a real defect — is manual
@@ -592,7 +594,7 @@ contrast failure in dark/`ar` fails exactly as loudly as one in light/`en`.
 
 Requirements, not aspirations, and each is verifiable.
 
-- **WCAG 2.1 AA on both grounds**, with ratios recorded in `design-system.md`,
+- **WCAG 2.1 AA on both grounds**, with ratios measured by the contrast gates,
   including **non-text contrast (1.4.11)** for controls and focus rings.
 - **Full keyboard operability** — facets, the variant selector, quantity
   steppers, the cart drawer, every checkout section.
@@ -753,8 +755,8 @@ the charts are admin furniture and do not belong here.
 - **Browser QA** at 375/768/1024/1440, both locales, both grounds. **Measure the
   DOM for anything geometric** — a screenshot proves what a frame looked like,
   not why.
-- **The configuration proof:** the full funnel passes against the second-store
-  fixture, in CI.
+- **The CI storefront proof:** the full funnel passes against the fixture shop
+  in both settings profiles (`ci-default`, `ci-alternate`), in CI.
 - **Cache correctness, observed on a genuinely prerendered page.** Change a price
   in the backoffice and verify the prerendered product page updates. *The
   invalidation failure that earned this rule was invisible exactly where anyone

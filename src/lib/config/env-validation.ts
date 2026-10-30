@@ -24,7 +24,7 @@
  *
  * Pure: `env` is a parameter. No `server-only` import, so tests and
  * `instrumentation.ts` can use it freely. Mirrors
- * `store-platform-staff/src/server/core/config/env-validation.ts`; the two are
+ * `mimora-staff/src/server/core/config/env-validation.ts`; the two are
  * separate repositories and each owns the variables it reads.
  */
 export type EnvRequirement = "required" | "capability" | "optional" | "provided";
@@ -147,7 +147,6 @@ export const ENV_VARS: readonly EnvVarSpec[] = [
     },
   },
   { name: "TRUST_X_REAL_IP", requirement: "optional", secret: false, description: "1 only behind a proxy that overwrites X-Real-IP.", validate: (value) => (value === "1" || value === "0" ? null : "must be 1 or unset") },
-  { name: "DESIGN_PREVIEW", requirement: "optional", secret: false, description: "1 serves /preview in a production build. Leave unset in production.", advisory: (value, { production }) => (production && value === "1" ? "is on — the internal design preview is publicly reachable" : null) },
 ];
 
 export const ENV_VAR_NAMES: ReadonlySet<string> = new Set(ENV_VARS.map((spec) => spec.name));

@@ -6,7 +6,7 @@ import { routing } from "./routing";
  * UI CHROME only. Store content — product names, page copy, navigation labels —
  * is `Localized` data from the backend, rendered through `resolveLocalized`
  * (src/lib/format/localized.ts). The two systems are never routed through each
- * other (store-platform/CLAUDE.md).
+ * other (mimora-client/CLAUDE.md).
  *
  * Adding a namespace: an entry here, `ar` and `en` files under ./locales, and
  * nothing else — the parity test (messages.test.ts) fails if one side lacks a key.

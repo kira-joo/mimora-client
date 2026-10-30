@@ -1,20 +1,16 @@
 {
-  "reason": "Any merchant identity string found in src/ (outside the isolated design preview) means a merchant leaked into the platform code. The platform renders ANY merchant from StoreProfile content; a store name, tagline, contact domain or address committed to source breaks that silently. Matching is case-insensitive and Arabic is compared with diacritics (U+064B-U+0652) and tatweel stripped. Derived from every fixture merchant: the preview/store-a merchant (src/preview/fixtures/catalog.ts, store-platform-staff/scripts/fixtures/stores/store-a.mjs) and the second-store fixture (store-b.mjs). A new fixture merchant adds its identity here.",
+  "reason": "Any CI-fixture merchant identity string found in src/ means the fictional fixture shop leaked into the storefront code. Store data (name, tagline, contact domain, address) comes from the backend's StoreProfile; one committed to source breaks that silently, and it must never be Mimora's data either. Matching is case-insensitive and Arabic is compared with diacritics (U+064B-U+0652) and tatweel stripped. Derived from the CI fixture shop \"Sukkar & Qamar\" (mimora-staff/scripts/fixtures/stores/ci-gift-shop.mjs), the only fixture merchant. Fixture-merchant identity changes here with it.",
   "strings": [
-    "Hirfa",
-    "حِرفة",
-    "hirfa.example",
-    "hirfa@",
-    "Hirfa workshop",
-    "Clothes and tools, made to be used for years",
-    "ملابس وعُدد تُصنع لتُستخدم سنوات",
+    "Sukkar & Qamar",
+    "سُكّر وقمر",
+    "sukkar-qamar.example",
+    "sukkarqamar",
+    "hello@sukkar-qamar",
+    "Cherry Lane Studio",
+    "ستوديو شارع الكرز",
+    "Gifts wrapped with care, from pajamas to little treats",
+    "هدايا مغلّفة بعناية، من البيجامات إلى الحلويات الصغيرة",
     "Mohamed Mazhar",
-    "محمد مظهر",
-    "Qahwa & Co",
-    "Qahwa",
-    "قهوة وشركاه",
-    "qahwa-co.example",
-    "Slow coffee and everyday kitchen things",
-    "قهوة بطيئة وأدوات مطبخ لكل يوم"
+    "محمد مظهر"
   ]
 }

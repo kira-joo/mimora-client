@@ -13,7 +13,6 @@ before trusting this list. How to deploy: `deployment.md`.
 | `STORE_TIMEZONE` | required | no | Dates would render in UTC. Production boot refuses to start. Must equal the backend's value; checked through `Intl`. |
 | `REVALIDATE_SECRET` | capability | yes | Cache invalidation is OFF (announced once at boot): the receiver answers 404 to the backend, and prerendered prices lag by the 300s safety net. Must equal the backend's value; 32+ characters when set. |
 | `TRUST_X_REAL_IP` | optional | no | Set `1` only behind a proxy that overwrites `X-Real-IP`. |
-| `DESIGN_PREVIEW` | optional | no | `1` serves `/preview` in a production build; reported at boot if left on in production. |
 
 **Tiers.** *required* — at **production boot** (`src/instrumentation.ts` →
 `assertProductionEnvironment`) a missing or unusable one stops the process with a message listing the
@@ -41,7 +40,7 @@ compares the answer with its `STORE_ID` **before every backend call** — in `st
 The identity call is `no-store` and uses Next's unpatched `fetch`, so it never makes an ISR page dynamic; the catalog
 read's own `next: { revalidate, tags }` is unchanged. At production boot `register()` attempts the check once and logs
 `[identity] verified store 'x'`, a loud error on a mismatch, or a warning if the backend is unreachable; it never stops the boot.
-The CI configuration proof adopts `store-a` / `store-b` into each fixture database and gives both processes that `STORE_ID`.
+The CI storefront proof adopts `ci-default` / `ci-alternate` into the matching fixture database and gives both processes that `STORE_ID`.
 
 ## `.env.example`
 
@@ -62,8 +61,8 @@ passed in this tab's `sessionStorage`, never in the URL
 ## Local development and test data
 
 - Dev database: `store-platform-staff-dev`. Integration tests:
-  `store-platform-staff-test`. Fixtures: `store-fixture-a` and `store-fixture-b`
-  (see `../store-platform-staff/scripts/fixtures/`). Each is a separate database on
+  `store-platform-staff-test`. Fixtures: `store-fixture-ci-default` and `store-fixture-ci-alternate`
+  (one fictional shop in two settings profiles; see `../mimora-staff/scripts/fixtures/`). Each is a separate database on
   the local replica set; none is ever a production database. The fixture seeder
   refuses any non-local host.
 - Secrets for local runs are generated per machine and live outside both

@@ -63,7 +63,7 @@ describe("verify-design-tokens guard", () => {
   });
 
   it("refuses a tree with nothing to scan", () => {
-    const { code, out } = run(tree({ "src/preview/only.ts": `const c = "#000000";\n` }));
+    const { code, out } = run(tree({ "src/only.test.ts": `const c = "#000000";\n` }));
     expect(code).toBe(1);
     expect(out).toMatch(/scanned 0 files/);
   });

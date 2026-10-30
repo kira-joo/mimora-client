@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 #
-# The configuration proof (Phase 7 §1, CLAUDE.md "Verification"): seed one fixture merchant into a
-# fresh backend, build THIS storefront against it, and run the funnel, accessibility and viewport
-# gates. CI runs it once per fixture; it runs the same way on a laptop, which is the point — a gate
-# that only exists in YAML cannot be reproduced when it fails.
+# The CI storefront proof (CLAUDE.md "Verification"): ONE fictional fixture shop (Sukkar & Qamar, a Cairo gift shop that is
+# never Mimora's catalog) in TWO settings profiles. Seed a profile into a fresh backend, build THIS storefront against it, and
+# run the funnel, accessibility and viewport gates. CI runs it once per profile; it runs the same way on a laptop, which is
+# the point — a gate that only exists in YAML cannot be reproduced when it fails.
 #
-#   scripts/ci/configuration-proof.sh store-a|store-b
+#   scripts/ci/configuration-proof.sh ci-default|ci-alternate
+#
+#   ci-default     light ground, guest checkout, COD + wallet/InstaPay with receipt, pickup, per-zone fees, tax added
+#   ci-alternate   dark ground, guest checkout off, transfer-only with receipt, minimum order, flat fee, tax included, no pickup
+#
+# Not a multi-store feature: the profiles are two states of the settings Mimora's owner can switch in mimora-staff.
 #
 # Env:
-#   BACKEND_DIR      a checkout of store-platform-staff (default ../store-platform-staff)
+#   BACKEND_DIR      a checkout of mimora-staff (default ../mimora-staff)
 #   STOREFRONT_DIR   this repository (default: the script's repo)
 #   BACKEND_PORT / STOREFRONT_PORT   defaults 3140 / 3130 — NOT the dev ports, so it never collides
 #   SKIP_BUILD=1     reuse existing production builds in both directories
@@ -17,22 +22,23 @@
 # Both apps are built and served in PRODUCTION mode. Locally, point BACKEND_DIR and STOREFRONT_DIR
 # at clones (`cp -c -R`), because `next build` replaces .next under any dev server running there.
 #
-# STORE_ID is the fixture's name (store-a | store-b): it is adopted into the fresh database before the backend starts and
+# STORE_ID is the profile's name (ci-default | ci-alternate): it is adopted into the fresh database before the backend starts and
 # exported to the backend and the storefront alike, so the storefront's identity check passes only against its own store.
 #
-# Secrets are generated per run and never printed. The fixture database is dropped first, so every
-# run starts from the same state; the seeder refuses any database not named store-fixture-*.
+# Secrets are generated per run and never printed. The throwaway database (store-fixture-<profile>) is dropped first, so
+# every run starts from the same state; the seeder refuses any database not named store-fixture-*.
 set -euo pipefail
 
-STORE="${1:?usage: configuration-proof.sh store-a|store-b}"
+STORE="${1:?usage: configuration-proof.sh ci-default|ci-alternate}"
+case "$STORE" in ci-default|ci-alternate) ;; *) echo "unknown profile '$STORE' (ci-default | ci-alternate)" >&2; exit 2 ;; esac
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STOREFRONT_DIR="${STOREFRONT_DIR:-$(cd "$HERE/../.." && pwd)}"
-BACKEND_DIR="${BACKEND_DIR:-$(cd "$STOREFRONT_DIR/../store-platform-staff" && pwd)}"
+BACKEND_DIR="${BACKEND_DIR:-$(cd "$STOREFRONT_DIR/../mimora-staff" && pwd)}"
 BACKEND_PORT="${BACKEND_PORT:-3140}"
 STOREFRONT_PORT="${STOREFRONT_PORT:-3130}"
 GATES="${GATES:-funnel a11y viewports}"
 WORK="$(mktemp -d)"
-DB="store-fixture-${STORE#store-}"
+DB="store-fixture-${STORE}"
 
 step() { printf '\n── %s\n' "$*"; }
 pids=()
@@ -56,20 +62,18 @@ export CUSTOMER_JWT_SECRET="${CUSTOMER_JWT_SECRET:-$(secret)}"
 export REVALIDATE_SECRET="${REVALIDATE_SECRET:-$(secret)}"
 export OWNER_EMAIL="owner@${DB}.local"
 export OWNER_PASSWORD="${OWNER_PASSWORD:-$(openssl rand -base64 24 | tr -d '\n')}"
-# The fixture merchants' countries: Hirfa trades in Egypt, Qahwa & Co in Saudi Arabia.
-case "$STORE" in
-  store-b) export STORE_TIMEZONE="${STORE_TIMEZONE:-Asia/Riyadh}" STORE_PHONE_COUNTRY_CODE="${STORE_PHONE_COUNTRY_CODE:-966}" ;;
-  *)       export STORE_TIMEZONE="${STORE_TIMEZONE:-Africa/Cairo}" STORE_PHONE_COUNTRY_CODE="${STORE_PHONE_COUNTRY_CODE:-20}" ;;
-esac
+# The fixture shop trades in Egypt, in both profiles.
+export STORE_TIMEZONE="${STORE_TIMEZONE:-Africa/Cairo}" STORE_PHONE_COUNTRY_CODE="${STORE_PHONE_COUNTRY_CODE:-20}"
 export MONGODB_URI="${MONGODB_URI:-mongodb://localhost:27020/?replicaSet=rs0&directConnection=true}"
 export MONGODB_DB="$DB"
 # The store's identity: the backend refuses to start against a database that is not marked as this store, and the
-# storefront refuses a backend that answers as another. Both processes get the same value (store-a | store-b).
+# storefront refuses a backend that answers as another. Both processes get the same value (ci-default | ci-alternate).
 export STORE_ID="$STORE"
 
 step "database: replica set up, $DB dropped"
 # The project name is pinned: a clone in another directory would otherwise derive a different
-# project and collide with the existing container's fixed name.
+# project and collide with the existing container's fixed name. `store-platform-staff` is the name
+# mimora-staff/docker-compose.yml still gives its container and volume; change both together.
 dc() { docker compose -p store-platform-staff -f "$BACKEND_DIR/docker-compose.yml" "$@"; }
 dc up -d --wait mongodb >/dev/null
 dc up mongodb-init >/dev/null 2>&1 || true   # rs.initiate fails harmlessly once initiated
@@ -110,11 +114,17 @@ step "fixture: seed $STORE"
   || { tail -30 "$WORK/seed.log"; exit 1; }
 grep -E '^FIXTURE_MANIFEST' "$WORK/seed.log" | cut -c1-200
 
+# The fixtures' bare-name photos are stored as /preview/images/<name>.jpg — served by THIS app's public/.
+# They are backend test data (mimora-staff/scripts/fixtures/images), not Mimora assets, so they are copied
+# in only for the proof and git-ignored; the shipped storefront carries none of them.
+mkdir -p "$STOREFRONT_DIR/public/preview/images"
+cp "${FIXTURE_IMAGE_DIR:-$BACKEND_DIR/scripts/fixtures/images}"/*.jpg "$STOREFRONT_DIR/public/preview/images/"
+
 step "storefront: production build against $STORE, start on :$STOREFRONT_PORT"
 export STAFF_API_URL="http://localhost:$BACKEND_PORT" SITE_URL="http://localhost:$STOREFRONT_PORT"
-# A clean .next, always: Next's fetch cache (.next/cache) is keyed by URL, and every fixture's backend
-# answers on the same URL — a build reusing it served the PREVIOUS store's settings (measured
-# 2026-10-22: store-a's checkout offered store-b's bank transfer and hid its guest checkout).
+# A clean .next, always: Next's fetch cache (.next/cache) is keyed by URL, and every profile's backend
+# answers on the same URL — a build reusing it served the PREVIOUS profile's settings (measured
+# 2026-10-22: one profile's checkout offered the other's bank transfer and hid its guest checkout).
 [ "${SKIP_BUILD:-}" = 1 ] || ( cd "$STOREFRONT_DIR" && rm -rf .next && npm run build > "$WORK/storefront-build.log" 2>&1 ) || { tail -40 "$WORK/storefront-build.log"; exit 1; }
 serve "$STOREFRONT_DIR" "$STOREFRONT_PORT" "$WORK/storefront.log"
 wait_for "http://localhost:$STOREFRONT_PORT/ar" "$WORK/storefront.log" storefront

@@ -1,4 +1,4 @@
-# `store-platform` — architecture
+# `mimora-client` — architecture
 
 **This document covers this repository's internals only.**
 
@@ -128,7 +128,7 @@ carries the evidence.
 - **Never render a value imported from a `"use client"` module into a Server
   Component's inline `<script>`.** It is serialised as a client reference
   (`I[module, chunks, "export"]`) and only resolves after that chunk loads, so
-  hydration depends on chunk timing. Measured in the design preview: React
+  hydration depends on chunk timing. Measured in the (since removed) template design preview: React
   hydration error 418 on 12 of 50 font-delayed loads, 0 of 50 once the text came
   from a plain module (`src/lib/theme/ground-script.ts`).
 - **A grid card that must be a `subgrid` is never a size container.**

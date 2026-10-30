@@ -43,7 +43,7 @@ const EXEMPTIONS = {
   ],
   socialUrl: [
     {
-      file: "src/components/chrome/footer.tsx",
+      file: "src/lib/chrome/footer-links.ts",
       pattern: /^https?:\/\/wa\.me\/\$\{/,
       reason: "Template over the merchant's configured WhatsApp number (digits from StoreProfile); no literal number or brand value.",
     },

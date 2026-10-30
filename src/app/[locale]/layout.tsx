@@ -5,7 +5,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import "../../styles/globals.css";
 import { directionOf, isLocale, routing, type Locale } from "@/i18n/routing";
-import { getContent, getOperatingHours, getStoreProfile, getTheme, orNull } from "@/lib/catalog/reads";
+import { getCategories, getContent, getOperatingHours, getStoreProfile, getTheme, orNull } from "@/lib/catalog/reads";
 import { buildHoursView } from "@/lib/catalog/operating-hours";
 import { JsonLd } from "@/components/seo/json-ld";
 import { storeJsonLd } from "@/lib/seo/structured-data";
@@ -19,8 +19,10 @@ import { AppProviders } from "@/components/providers/app-providers";
 import { AnnouncementBar } from "@/components/chrome/announcement-bar";
 import { Header } from "@/components/chrome/header";
 import { Footer } from "@/components/chrome/footer";
+import { NewsletterSection } from "@/components/chrome/newsletter-section";
+import { FloatingWhatsApp } from "@/components/chrome/floating-whatsapp";
+import { whatsAppChatUrl } from "@/lib/chrome/footer-links";
 import { AddedSheet } from "@/components/cart/added-sheet";
-import { CookieNotice } from "@/components/chrome/cookie-notice";
 import { StoreUnavailable } from "@/components/chrome/store-unavailable";
 import { storeTimeZone } from "@/lib/config/startup-check";
 
@@ -70,11 +72,12 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const locale: Locale = raw;
   setRequestLocale(locale);
 
-  const [profile, theme, content, operatingHours, messages, t] = await Promise.all([
+  const [profile, theme, content, operatingHours, categories, messages, t] = await Promise.all([
     orNull(getStoreProfile, "store profile"),
     orNull(getTheme, "theme"),
     orNull(getContent, "storefront content"),
     orNull(getOperatingHours, "operating hours"),
+    orNull(getCategories, "categories"),
     getMessages(),
     getTranslations({ locale, namespace: "common" }),
   ]);
@@ -84,6 +87,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   // "today" (which would go stale); checkout, which is dynamic, says how today stands.
   const hours = buildHoursView(operatingHours, { locale, timeZone: storeTimeZone(), now: new Date(), closedLabel: t("hoursClosed"), showToday: false });
   const allowVisitorGround = Boolean(theme?.theme.darkEnabled && theme.theme.allowVisitorChoice);
+  const whatsApp = whatsAppChatUrl(profile?.contact?.whatsApp);
 
   return (
     <html lang={locale} dir={directionOf(locale)} className={fontVariables} {...htmlThemeAttributes(theme)} suppressHydrationWarning>
@@ -113,13 +117,17 @@ export default async function LocaleLayout({ children, params }: { children: Rea
                   currency: profile.currency,
                 })}
               />
-              {/* First in the tree so a first-time visitor reaches the choice in a few Tab presses, not after the whole page; the panel is fixed to the viewport foot, so its position on screen is unchanged. */}
-              <CookieNotice />
+              {/* No cookie banner (owner decision, 2026-10-30): the store sets only necessary cookies and loads no analytics or
+                  advertising script, and `track()` stays gated on a consent that is never recorded, so nothing is pushed. If a
+                  tag manager or analytics provider is ever added, <CookieNotice /> (components/chrome/cookie-notice.tsx) is
+                  mounted here again, first in the tree, before anything is collected. */}
               <AnnouncementBar announcement={content?.announcement ?? null} />
               <Header storeName={localized(profile.name, locale)} navigation={content?.headerNavigation ?? []} />
               <main id="main">{children}</main>
-              <Footer profile={profile} footerNavigation={content?.footerNavigation ?? []} legalLinks={content?.legalLinks ?? []} hours={hours} />
+              <NewsletterSection />
+              <Footer profile={profile} footerNavigation={content?.footerNavigation ?? []} legalLinks={content?.legalLinks ?? []} categories={categories ?? []} hours={hours} />
               <AddedSheet />
+              {whatsApp ? <FloatingWhatsApp url={whatsApp} /> : null}
             </AppProviders>
           ) : (
             <StoreUnavailable />

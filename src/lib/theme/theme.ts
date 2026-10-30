@@ -32,7 +32,7 @@ export function brandCss(theme: ThemeView | null): string {
   const radius = typeof theme.brand.radiusScale === "number" && theme.brand.radiusScale >= 0 && theme.brand.radiusScale <= 4 ? `--sf-brand-radius-scale:${theme.brand.radiusScale};` : "";
   let css = "";
   if (light || radius) css += `:root{${light ?? ""}${radius}}`;
-  if (dark) css += `@media (prefers-color-scheme: dark){:root[data-dark="enabled"]:not([data-ground="light"]){${dark}}}:root[data-ground="dark"]{${dark}}`;
+  if (dark) css += `:root[data-ground="dark"]{${dark}}`;
   return css;
 }
 

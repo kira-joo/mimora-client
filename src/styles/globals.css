@@ -31,6 +31,10 @@
   --color-caution: var(--sf-caution);
   --color-critical: var(--sf-critical);
   --color-on-media: var(--sf-on-media);
+  --color-banner-ink: var(--sf-banner-ink);
+  --color-banner-ink-muted: var(--sf-banner-ink-muted);
+  --color-banner-dot: var(--sf-banner-dot);
+  --color-banner-dot-active: var(--sf-banner-dot-active);
   --color-heading: var(--sf-heading);
   --color-ornament: var(--sf-ornament);
   --color-band: var(--sf-band);
@@ -271,33 +275,112 @@
   }
 }
 
+/* ---------------------------------------------------------------- listing: price range */
+@layer components {
+  /*
+   * Two native range inputs on one rail: real, labelled, keyboard-operable
+   * controls (arrow keys, Home/End), drawn as two pearls on a ribbon. The
+   * rail's fill is positioned with logical insets by the component, so the
+   * whole control mirrors in RTL (the inputs themselves flip with `direction`).
+   * The pearl's 44px hit area is its transparent border; its focus ring is
+   * the outline on that same circle.
+   */
+  .sf-range {
+    position: relative;
+    height: 2.75rem;
+  }
+  .sf-range-rail {
+    position: absolute;
+    inset-inline: 1.375rem;
+    top: 50%;
+    height: 0.5rem;
+    transform: translateY(-50%);
+    border-radius: var(--sf-radius-pill);
+    background: var(--sf-blush);
+    box-shadow: inset 0 0 0 1px var(--sf-line-strong);
+  }
+  .sf-range-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: var(--sf-radius-pill);
+    background: var(--sf-ribbon-mid);
+    box-shadow: inset 0 0 0 1px var(--sf-action-ink);
+  }
+  .sf-range input[type="range"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background: transparent;
+    appearance: none;
+    pointer-events: none;
+  }
+  .sf-range input[type="range"]:focus-visible {
+    outline: none;
+  }
+  .sf-range input[type="range"]::-webkit-slider-runnable-track {
+    height: 100%;
+    background: transparent;
+  }
+  .sf-range input[type="range"]::-moz-range-track {
+    height: 100%;
+    background: transparent;
+  }
+  .sf-range input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    pointer-events: auto;
+    box-sizing: border-box;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0.5rem solid transparent;
+    border-radius: 50%;
+    background-color: var(--sf-action);
+    background-image: radial-gradient(circle, var(--sf-surface) 0 0.25rem, transparent 0.3125rem);
+    background-clip: content-box;
+    cursor: grab;
+  }
+  .sf-range input[type="range"]::-moz-range-thumb {
+    pointer-events: auto;
+    box-sizing: border-box;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0.5rem solid transparent;
+    border-radius: 50%;
+    background-color: var(--sf-action);
+    background-image: radial-gradient(circle, var(--sf-surface) 0 0.25rem, transparent 0.3125rem);
+    background-clip: content-box;
+    cursor: grab;
+  }
+  .sf-range input[type="range"]:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--sf-focus);
+  }
+  .sf-range input[type="range"]:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--sf-focus);
+  }
+  .sf-range input[type="range"]:active::-webkit-slider-thumb {
+    background-color: var(--sf-action-hover);
+    cursor: grabbing;
+  }
+}
+
 /* ---------------------------------------------------------------- home: hero and band */
 @layer components {
-  /* Soft blush light behind the hero copy, settling into the canvas — a gradient, so no bitmap and no ground-specific asset. */
-  .hero-glow {
-    background:
-      radial-gradient(60% 90% at 18% 38%, var(--sf-glow-a), transparent 72%),
-      linear-gradient(to bottom, var(--sf-glow-b), var(--sf-canvas));
+  /* The hero banners' live headline: the page display face, sized to share a banner with its artwork (token in tokens.css). */
+  .t-hero {
+    font-size: var(--sf-hero-headline);
+    line-height: 1.15;
   }
 
-  /*
-   * The showcase photograph dissolves into the page on the side the copy sits:
-   * its top edge on a phone (copy above), its reading-start edge on desktop. The
-   * RTL twin is explicit because mask gradients take physical directions.
-   */
-  .hero-fade {
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 18%);
-    mask-image: linear-gradient(to bottom, transparent 0, black 18%);
+  /* Phone only: the copy of banners 2 and 3 sits at the foot of the frame, on a veil rising from the bottom edge. */
+  .banner-veil {
+    background: linear-gradient(to top, var(--sf-banner-veil) 0, var(--sf-banner-veil) 58%, transparent 100%);
   }
-  @media (min-width: 1024px) {
-    .hero-fade {
-      -webkit-mask-image: linear-gradient(to right, transparent 0, black 30%);
-      mask-image: linear-gradient(to right, transparent 0, black 30%);
-    }
-    [dir="rtl"] .hero-fade {
-      -webkit-mask-image: linear-gradient(to left, transparent 0, black 30%);
-      mask-image: linear-gradient(to left, transparent 0, black 30%);
-    }
+
+  /* A hero pagination dot: no container behind it, only a hairline light halo so it holds over any part of a banner. */
+  .banner-dot {
+    box-shadow: 0 0 0 1.5px var(--sf-banner-dot-halo);
   }
 
   /* The gingham band's title reads italic on a phone — for Latin only: Arabic has no italic, and a synthetic slant breaks Naskh. */

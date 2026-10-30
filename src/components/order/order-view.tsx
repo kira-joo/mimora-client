@@ -96,7 +96,8 @@ export function OrderDetailView({ order, token, justPlaced, taxMode }: { order: 
           </div>
           {window_ && order.status !== "CANCELLED" && !isCompletedStatus(order.status) ? (
             <div className="flex flex-col gap-1 sm:col-span-2">
-              <dt className="t-label text-ink-muted">{order.fulfilment.mode === "PICKUP" ? t("readyBetween") : t("arrivesBetween")}</dt>
+              {/* A delivery estimate counts from confirmation: until staff confirm, the dates are an estimate that confirmation re-dates. */}
+              <dt className="t-label text-ink-muted">{order.fulfilment.mode === "PICKUP" ? t("readyBetween") : order.status === "PLACED" ? t("arrivesEstimated") : t("arrivesBetween")}</dt>
               <dd className="font-medium">
                 {formatDate(locale, window_.from, timeZone, DATE_ONLY)} – {formatDate(locale, window_.to, timeZone, DATE_ONLY)}
               </dd>

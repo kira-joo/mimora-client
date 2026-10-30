@@ -5,8 +5,6 @@ import type { Locale } from "@/i18n/routing";
 import type { Collection, DeliveryZone, FulfilmentSettings, HomeSection, PaymentMethodView } from "@/lib/api/types";
 import type { CardProduct } from "@/lib/catalog/card-model";
 import { localized } from "@/lib/format/numerals";
-import { heroSecondaryAction } from "@/lib/home/hero-actions";
-import { buildHeroSlides } from "@/lib/home/hero-slides";
 import { MOTION } from "@/lib/motion/tokens";
 import { Benefits, benefitItems } from "./benefits";
 import { CategoryTiles } from "./category-tiles";
@@ -31,7 +29,7 @@ export interface HomeData {
 export async function HomeSectionView({ section, index, locale, data }: { section: HomeSection; index: number; locale: Locale; data: HomeData }) {
   switch (section.type) {
     case "campaignHero":
-      return <HeroSection section={section} locale={locale} data={data} />;
+      return <HeroSection locale={locale} data={data} />;
     case "categoryTiles":
       return <CategoryTiles section={section} locale={locale} />;
     case "collectionStory":
@@ -46,19 +44,15 @@ export async function HomeSectionView({ section, index, locale, data }: { sectio
 }
 
 /**
- * The hero reads its neighbours: the showcase rotates the campaign image with the
- * category photographs, the second action leads somewhere the first does not (hero-actions.ts),
- * and — when the store publishes an assurance strip — the strip renders inside the
- * hero as its benefits row instead of as a section of its own.
+ * Where the store publishes its campaign hero, Mimora shows its three campaign banners
+ * (hero.tsx, lib/home/hero-banners.ts) — the section's own headline and image are not
+ * used. When the store publishes an assurance strip, it renders under the hero as its
+ * benefits row instead of as a section of its own.
  */
-async function HeroSection({ section, locale, data }: { section: Section<"campaignHero">; locale: Locale; data: HomeData }) {
-  const tiles = data.sections.find((candidate): candidate is Section<"categoryTiles"> => candidate.type === "categoryTiles");
-  const band = data.sections.find((candidate): candidate is Section<"editorialBand"> => candidate.type === "editorialBand");
+async function HeroSection({ locale, data }: { locale: Locale; data: HomeData }) {
   const hasStrip = data.sections.some((candidate) => candidate.type === "assuranceStrip");
   const benefits = hasStrip ? await benefitItems(locale, data.fulfilment, data.zones, data.paymentMethods) : [];
-  const action = heroSecondaryAction(section, band, tiles);
-  const secondary = action ? { label: localized(action.name, locale), href: action.href } : null;
-  return <CampaignHero section={section} locale={locale} slides={buildHeroSlides(section, tiles, locale)} secondary={secondary} benefits={benefits} />;
+  return <CampaignHero locale={locale} collectionSlugs={data.collections.map((collection) => collection.slug)} benefits={benefits} />;
 }
 
 async function ProductRailSection({ section, locale, items, data }: { section: Section<"productRail">; locale: Locale; items: CardProduct[]; data: HomeData }) {

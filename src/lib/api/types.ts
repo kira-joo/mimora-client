@@ -122,7 +122,10 @@ export interface DeliveryZone {
   areas: string[];
   fee: Money;
   minimumOrder?: Money;
+  /** The latest delivery estimate, in days (shipping days when the store sets them). */
   leadDays: number;
+  /** The earliest delivery estimate; absent means a single figure. */
+  leadDaysMin?: number;
   order: number;
 }
 

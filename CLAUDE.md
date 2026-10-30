@@ -153,10 +153,14 @@ and cannot — see non-negotiable 5 and `../docs/store/02-restaurant-pair-audit.
 - **Two grounds, one geometry.** Light and dark differ in colour, scrim and
   elevation only. Type, spacing, radius and every duration are declared once and
   never per ground: **the flip must not move a single pixel.**
-- **Theme resolution is a CSS concern, never a JavaScript one.** No Server
-  Component branches on theme. The system preference is honoured in CSS so the
-  page stays static; only an explicit stored choice is applied by script, before
-  first paint.
+- **Two grounds, Light and Dark — no "system" mode** (owner decision,
+  2026-10-30). The device's colour-scheme preference is deliberately not
+  followed: a page is light unless the store's default ground is dark or the
+  visitor chose dark. Theme resolution stays a CSS concern: no Server Component
+  branches on theme; the default arrives as a server-rendered attribute and an
+  explicit stored choice is applied by the pre-paint script, before first paint.
+  When the merchant allows visitor choice, the toggle is visible in the desktop
+  header (and in the mobile menu).
 - **Motion, imported as `motion/react`.** Never `framer-motion`, never GSAP,
   never a second animation engine. Prefer CSS transitions where they suffice.
   Motion never delays an action.

@@ -105,6 +105,7 @@ export function Header({ storeName, navigation }: HeaderProps) {
           <button type="button" onClick={() => setSearchOpen(true)} className={cn(ICON_BUTTON, "xl:hidden")} aria-label={t("search")} aria-haspopup="dialog">
             <Search className="size-[22px]" aria-hidden="true" />
           </button>
+          <GroundSwitch variant="toggle" className={cn(ICON_BUTTON, "hidden lg:inline-flex")} />
           <Link href="/account" className={cn(ICON_BUTTON, "hidden lg:inline-flex")} aria-label={t("account")}>
             <User className="size-[22px]" aria-hidden="true" />
           </Link>

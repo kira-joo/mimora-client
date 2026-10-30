@@ -1,74 +1,63 @@
-import { ArrowLeft, Gift } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import { cn } from "@kira-joo/frontend-toolkit-tailwind/server";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
-import type { HomeSection } from "@/lib/api/types";
-import { localized } from "@/lib/format/numerals";
-import type { HeroSlide } from "@/lib/home/hero-slides";
-import { linkHref } from "@/lib/links";
+import { heroBanners, type HeroBanner } from "@/lib/home/hero-banners";
 import { Benefits, type BenefitItem } from "./benefits";
-import { HeroShowcase } from "./hero-showcase";
-import { HandHeart } from "./ornaments";
+import { HeroCarousel, type CarouselSlide } from "./hero-carousel";
 
-/** A headline authored as sentences ("Little things. Big feelings.") breaks between them; other scripts' marks are honoured. */
-const SENTENCE_BREAK = /(?<=[.!?؟。])\s+/u;
+/** The CTA's focus ring sits on light artwork on both grounds, so it takes the banner ink, not the ground's focus hue. */
+const ON_BANNER_FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-banner-ink";
 
 /**
- * Campaign hero. Copy, the primary action and the benefits are real page content
- * (not part of any photograph); the right-hand showcase is a rotation of the
- * store's own photographs. One DOM order serves both layouts — copy, showcase,
- * benefits — which stacks on a phone and, from `lg`, puts the showcase beside
- * the copy, bleeding to the reading-end edge of the viewport.
+ * The home hero: Mimora's three campaigns (lib/home/hero-banners.ts) in one carousel, each a complete slide.
+ * The brand banner is finished artwork carrying its own headline and button, so nothing is laid over it — the
+ * whole banner is the link, named by the text drawn in it. Banners 2 and 3 are photographs with live, localized
+ * copy and a real link over their empty side. The benefits row sits directly under the hero, on the page ground.
  */
-export function CampaignHero({ section, locale, slides, secondary, benefits }: { section: Extract<HomeSection, { type: "campaignHero" }>; locale: Locale; slides: HeroSlide[]; secondary: { label: string; href: string } | null; benefits: BenefitItem[] }) {
-  const headline = localized(section.headline, locale);
-  const subline = section.subline ? localized(section.subline, locale) : "";
-  const lines = headline.split(SENTENCE_BREAK);
+export async function CampaignHero({ locale, collectionSlugs, benefits }: { locale: Locale; collectionSlugs: readonly string[]; benefits: BenefitItem[] }) {
+  const t = await getTranslations("common");
+  const slides: CarouselSlide[] = heroBanners(locale, collectionSlugs).map((banner) =>
+    banner.kind === "artwork"
+      ? { id: banner.id, kind: "artwork", label: t("heroBrandLabel"), image: banner.image, mobileImage: banner.mobileImage, href: banner.href }
+      : { id: banner.id, kind: "photo", label: t(`hero_${banner.id}_title`), image: banner.image, focus: FOCUS[banner.id], content: <BannerCopy banner={banner} title={t(`hero_${banner.id}_title`)} body={t(`hero_${banner.id}_body`)} action={t(`hero_${banner.id}_cta`)} /> },
+  );
 
   return (
-    <section className="relative isolate overflow-hidden lg:flex lg:min-h-[clamp(520px,41.4vw,640px)] lg:flex-col lg:justify-center">
-      <div className="hero-glow absolute inset-0 -z-10" aria-hidden="true" />
-      <HandHeart className="absolute start-[3%] top-6 hidden size-9 -rotate-6 text-ornament lg:block" />
-      <HandHeart className="absolute start-[42%] top-[4%] size-6 rotate-12 text-ornament max-lg:hidden" />
-      <HandHeart className="absolute end-6 top-10 size-7 rotate-6 text-ornament lg:hidden" />
-
-      <div className="container-sf pointer-events-none relative z-10 pb-6 pt-8 text-center lg:pb-0 lg:pt-10 lg:text-start">
-        <div className="pointer-events-auto mx-auto flex max-w-xl flex-col items-center gap-4 lg:mx-0 lg:max-w-[min(36rem,50%)] lg:items-start lg:gap-5">
-          <h1 className="t-display text-balance">
-            {lines.map((line) => (
-              <span key={line} className="block">
-                {line}
-              </span>
-            ))}
-          </h1>
-          {subline ? <p className="max-w-md font-display text-[1.125rem] leading-relaxed text-ink-muted lg:text-[1.5rem]">{subline}</p> : null}
-          <div className="mt-2 flex w-full max-w-xs flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-center lg:mt-3 lg:justify-start">
-            {section.action ? (
-              <Link href={linkHref(section.action.link)} className="btn btn-primary min-h-12 gap-2.5 whitespace-nowrap px-7 text-base lg:min-h-14 xl:px-9">
-                {localized(section.action.label, locale)}
-                <ArrowLeft className="size-[18px] ltr:-scale-x-100" aria-hidden="true" />
-              </Link>
-            ) : null}
-            {secondary ? (
-              <Link href={secondary.href} className="btn btn-outline min-h-12 gap-2.5 whitespace-nowrap px-7 text-base lg:min-h-14 xl:px-8">
-                <Gift className="size-[18px]" aria-hidden="true" />
-                {secondary.label}
-              </Link>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      {slides.length > 0 ? (
-        <div className="relative aspect-[5/4] w-full sm:aspect-[16/10] lg:absolute lg:inset-y-0 lg:end-0 lg:z-0 lg:aspect-auto lg:w-[50%]">
-          <HeroShowcase slides={slides} />
-        </div>
-      ) : null}
-
+    <section aria-label={t("carouselLabel")}>
+      <HeroCarousel slides={slides} />
       {benefits.length > 0 ? (
-        <div className="container-sf pointer-events-none relative z-10 -mt-6 rounded-t-panel bg-canvas pb-2 pt-6 lg:mt-0 lg:rounded-none lg:bg-transparent lg:pb-12 lg:pt-8">
-          <Benefits items={benefits} className="pointer-events-auto lg:max-w-[34rem]" />
+        <div className="container-sf py-6 lg:py-8">
+          <Benefits items={benefits} className="mx-auto max-w-3xl" />
         </div>
       ) : null}
     </section>
+  );
+}
+
+/** Where each photograph is anchored when the frame crops it: the gift box stays in view on a square phone frame. */
+const FOCUS: Record<"gifts" | "offers", string> = {
+  gifts: "object-[30%_50%] md:object-[50%_50%]",
+  offers: "object-[72%_50%] md:object-[50%_50%]",
+};
+
+/**
+ * Live copy over a photograph's empty side. From md it fills that half of the frame (a physical side — the empty
+ * space belongs to the photograph, not the reading direction); on a phone it stacks at the foot of the square frame
+ * on a light veil. The ink is the banner ink on both grounds: the artwork is light pink in dark mode too.
+ */
+function BannerCopy({ banner, title, body, action }: { banner: Extract<HeroBanner, { kind: "photo" }>; title: string; body: string; action: string }) {
+  return (
+    <div className={cn("pointer-events-none absolute inset-x-0 bottom-0 z-10 flex md:inset-y-0 md:w-1/2", banner.copySide === "right" ? "md:start-auto md:right-0 md:left-auto" : "md:left-0 md:right-auto")}>
+      <div className="banner-veil pointer-events-auto flex w-full flex-col items-center gap-2.5 px-6 pb-16 pt-10 text-center md:justify-center md:gap-4 md:bg-none md:px-[6%] md:pb-0 md:pt-0">
+        <h2 className="t-display t-hero text-balance text-banner-ink">{title}</h2>
+        <p className="max-w-[28rem] text-balance text-[0.9375rem] leading-relaxed text-banner-ink-muted md:text-[1.0625rem] lg:text-[1.1875rem]">{body}</p>
+        <Link href={banner.href} className={`btn btn-primary mt-1 min-h-11 gap-2.5 whitespace-nowrap px-6 text-[0.9375rem] md:min-h-12 lg:mt-2 lg:min-h-14 lg:px-8 lg:text-base ${ON_BANNER_FOCUS}`}>
+          {action}
+          <ArrowLeft className="size-[18px] ltr:-scale-x-100" aria-hidden="true" />
+        </Link>
+      </div>
+    </div>
   );
 }

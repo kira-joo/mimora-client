@@ -21,7 +21,9 @@ export async function loadListing(state: ListingState, locale: Locale, basePath:
   if (!query) return null;
 
   const scope = { categoryId: query.categoryId, collectionId: query.collectionId, search: query.search };
-  const [page, facets] = await Promise.all([listProducts(query), orNull(() => getFacets(scope), "facets")]);
+  // The category rail lists every category in this search / collection, not only the chosen one: facets scoped to a category count nothing else.
+  const railScope = { collectionId: query.collectionId, search: query.search };
+  const [page, facets, categoryFacets] = await Promise.all([listProducts(query), orNull(() => getFacets(scope), "facets"), query.categoryId ? orNull(() => getFacets(railScope), "category facets") : Promise.resolve(null)]);
   const now = Date.now();
   const currency = profile?.currency ?? "XXX";
   const badges = await loadPromotionBadges(locale, currency);
@@ -69,6 +71,8 @@ export async function loadListing(state: ListingState, locale: Locale, basePath:
     currency,
     page,
     facets,
+    /** Category counts for the rail — unscoped by the chosen category. */
+    categoryFacets: (categoryFacets ?? facets)?.categories ?? [],
     chips,
     products: page.data.map((product) => toCardProduct(product, locale, lookups.categories, now, badges)),
     category,

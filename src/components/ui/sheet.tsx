@@ -36,7 +36,6 @@ export function Sheet({ open, onClose, side, title, closeLabel, children, footer
   const titleId = useId();
   const reduce = useReducedMotion();
   const [mounted, setMounted] = useState(open);
-  const [rtl, setRtl] = useState(false);
 
   useEffect(() => {
     if (open) setMounted(true);
@@ -44,13 +43,15 @@ export function Sheet({ open, onClose, side, title, closeLabel, children, footer
 
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (mounted && open && dialog && !dialog.open) {
-      setRtl(document.documentElement.dir === "rtl");
-      dialog.showModal();
-    }
+    if (mounted && open && dialog && !dialog.open) dialog.showModal();
   }, [mounted, open]);
 
   if (!mounted) return null;
+
+  // Read during render, not after: Motion reads `initial` once, on the panel's first frame, so a direction that
+  // arrived a render later made an Arabic drawer start on the LTR side and cross the screen. A sheet only ever
+  // mounts on the client (it opens on interaction), so `document` is there.
+  const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
 
   const sign = (towardEnd: boolean) => ((towardEnd ? 1 : -1) * (rtl ? -1 : 1));
   const offscreen = reduce
@@ -65,7 +66,9 @@ export function Sheet({ open, onClose, side, title, closeLabel, children, footer
   const onscreen = reduce ? { opacity: 1 } : side === "full" ? { opacity: 1, y: 0 } : { x: 0, y: 0 };
 
   const placement = {
-    bottom: "inset-x-0 bottom-0 max-h-[88dvh] md:inset-x-auto md:start-1/2 md:bottom-auto md:top-1/2 md:w-[min(560px,92vw)] md:-translate-y-1/2 md:rtl:translate-x-1/2 md:ltr:-translate-x-1/2",
+    // Centred at md+ by auto margins, not translate: Motion owns `transform` while it animates, and a CSS translate
+    // on the same element was overwritten mid-flight, so the panel jumped into place.
+    bottom: "inset-x-0 bottom-0 max-h-[88dvh] md:inset-0 md:m-auto md:h-fit md:w-[min(560px,92vw)]",
     start: "inset-y-0 start-0 w-[min(400px,88vw)]",
     end: "inset-y-0 end-0 w-[min(440px,92vw)]",
     full: "inset-0",
@@ -75,7 +78,7 @@ export function Sheet({ open, onClose, side, title, closeLabel, children, footer
     <dialog
       ref={dialogRef}
       aria-labelledby={titleId}
-      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none overflow-hidden bg-transparent p-0 text-ink backdrop:bg-[var(--sf-backdrop)]"
+      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none overflow-hidden bg-transparent p-0 text-ink backdrop:bg-transparent"
       onCancel={(event) => {
         event.preventDefault();
         onClose();
@@ -91,13 +94,27 @@ export function Sheet({ open, onClose, side, title, closeLabel, children, footer
         }}
       >
         {open ? (
+          // The scrim is drawn here, not as the native ::backdrop, so it fades in and out with the panel instead of
+          // snapping on and off.
+          <motion.div
+            key="scrim"
+            aria-hidden="true"
+            className="absolute inset-0 bg-[var(--sf-backdrop)]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: DURATION.out, ease: EASE_EXIT } }}
+            transition={{ duration: DURATION.in, ease: EASE_STANDARD }}
+            onClick={onClose}
+          />
+        ) : null}
+        {open ? (
           <motion.div
             key="panel"
             initial={offscreen}
             animate={onscreen}
             exit={{ ...offscreen, transition: { duration: DURATION.out, ease: EASE_EXIT } }}
             transition={{ duration: DURATION.in, ease: EASE_STANDARD }}
-            className={cn("absolute flex flex-col bg-canvas shadow-[var(--sf-elevation-sheet)]", placement, className)}
+            className={cn("absolute flex flex-col bg-canvas shadow-[var(--sf-elevation-sheet)] will-change-transform", placement, className)}
           >
             <div className="flex min-h-14 shrink-0 items-center justify-between gap-4 border-b border-line px-[var(--sf-gutter)]">
               <h2 id={titleId} className="t-heading">

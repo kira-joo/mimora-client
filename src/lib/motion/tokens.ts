@@ -12,7 +12,7 @@ export const MOTION = {
   standard: 0.25,
   /** --sf-duration-slow */
   slow: 0.4,
-  /** --sf-duration-crossfade — the hero showcase's slide-to-slide dissolve. */
+  /** --sf-duration-crossfade — the hero carousel's slide-to-slide travel (one full image replacing the next). */
   crossfade: 0.7,
   /** --sf-duration-autoplay — how long a showcase slide rests before the next one (seconds). */
   autoplay: 6,

@@ -40,6 +40,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
       total={listing.page.total}
       totalPages={listing.page.totalPages}
       facets={listing.facets}
+      categoryFacets={listing.categoryFacets}
       categories={listing.lookups.categories}
       brands={listing.lookups.brands}
       currency={listing.currency}

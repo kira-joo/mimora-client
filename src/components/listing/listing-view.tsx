@@ -4,13 +4,17 @@ import { Link } from "@/i18n/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import type { Crumb } from "@/lib/catalog/breadcrumbs";
 import { ProductCard } from "@/components/product/product-card";
+import { Bow } from "@/components/home/ornaments";
+import { TitleWithHeart } from "@/components/home/section-head";
 import type { Locale } from "@/i18n/routing";
 import type { Brand, Category, CatalogFacets } from "@/lib/api/types";
 import type { CardProduct } from "@/lib/catalog/card-model";
+import type { FacetDef } from "@/lib/catalog/listing-facets";
 import { toSearch, type ListingState } from "@/lib/catalog/listing-query";
-import { formatNumber, formatPrice, localized } from "@/lib/format/numerals";
+import { formatNumber, localized } from "@/lib/format/numerals";
+import { CategoryRail, type CategoryOption } from "./category-rail";
 import { ListingAnalytics } from "./listing-analytics";
-import { FacetPanel, ListingControls, type AttributeOption, type CategoryOption } from "./listing-controls";
+import { ListingControls } from "./listing-controls";
 
 export interface Chip {
   key: string;
@@ -32,6 +36,8 @@ interface ListingViewProps {
   total: number;
   totalPages: number;
   facets: CatalogFacets | null;
+  /** Category counts for the rail, independent of the chosen category. Falls back to `facets`. */
+  categoryFacets?: Array<{ key: string; count: number }>;
   categories: Category[];
   brands: Brand[];
   currency: string;
@@ -41,102 +47,113 @@ interface ListingViewProps {
 }
 
 /**
- * Listing (MDS §6.2, design-system §13b): heading, count and sort together;
- * phone — a Filter / Sort bar; desktop — facets in a side column. Applied
- * filters are removable chips with a clear-all. Empty results are a designed
- * state: what was searched, what is applied, and one tap to drop the narrowest
- * filter (MDS §9). "Nothing here yet" and "nothing matches" are different words.
+ * Listing (MDS §6.2, design-system §13b): a gingham banner with the title and
+ * the live count, the boutique's category rail, a filter bar (popovers on a
+ * desktop, a sticky Filters / Sort pair and a sheet on a phone), the applied
+ * filters as removable chips, and the product grid across the full width — no
+ * sidebar. Empty results are a designed state: what was searched, what is
+ * applied, and one tap to drop the narrowest filter (MDS §9). "Nothing here
+ * yet" and "nothing matches" are different words.
  */
 export async function ListingView(props: ListingViewProps) {
-  const { locale, title, description, basePath, state, products, total, totalPages, facets, categories, brands, currency, chips, trail } = props;
+  const { locale, title, description, basePath, state, products, total, totalPages, facets, categoryFacets, categories, brands, currency, chips, trail } = props;
   const t = await getTranslations("common");
+  const ui = await getTranslations("common.listingUi");
   const narrowest = chips.length ? chips.reduce((best, chip) => ((chip.count ?? 0) > (best.count ?? 0) ? chip : best)) : null;
   const filtered = chips.length > 0;
   // A stable name for what is shown: a search, a scope, or the whole catalog — for analytics only.
   const listId = state.q ? "search" : state.category ? `category:${state.category}` : state.collection ? `collection:${state.collection}` : state.brand ? `brand:${state.brand}` : "all";
-  const priceHint = facets?.priceRange.min && facets.priceRange.max ? `${formatPrice(locale, facets.priceRange.min, currency)} – ${formatPrice(locale, facets.priceRange.max, currency)}` : undefined;
 
-  const categoryOptions: CategoryOption[] = (facets?.categories ?? [])
+  const categoryOptions: Array<CategoryOption & { sortOrder: number }> = (categoryFacets ?? facets?.categories ?? [])
     .map((facet) => {
       const category = categories.find((candidate) => candidate._id === facet.key);
-      return category ? { slug: category.slug, label: localized(category.name, locale), count: facet.count, child: Boolean(category.parentId), sortOrder: category.sortOrder } : null;
+      return category ? { slug: category.slug, label: localized(category.name, locale), count: facet.count, sortOrder: category.sortOrder } : null;
     })
     .filter((option): option is CategoryOption & { sortOrder: number } => option !== null)
     .sort((a, b) => a.sortOrder - b.sortOrder);
-  const brandOptions = (facets?.brands ?? [])
+  const brandValues = (facets?.brands ?? [])
     .map((facet) => {
       const brand = brands.find((candidate) => candidate._id === facet.key);
-      return brand ? { slug: brand.slug, label: localized(brand.name, locale), count: facet.count } : null;
+      return brand ? { key: brand.slug, label: localized(brand.name, locale), count: facet.count } : null;
     })
     .filter((option): option is NonNullable<typeof option> => option !== null);
-  // The merchant's own attribute axes (material, fit, …) — each value a checkbox with the products it would show.
-  const attributeOptions: AttributeOption[] = (facets?.attributes ?? [])
-    .map((attribute) => ({
-      key: attribute.key,
-      label: localized(attribute.name, locale),
-      values: attribute.values.map((value) => ({ key: value.key, label: localized(value.label, locale), count: value.count })).sort((a, b) => a.label.localeCompare(b.label, locale)),
-    }))
-    .filter((attribute) => attribute.values.length > 0)
-    .sort((a, b) => a.label.localeCompare(b.label, locale));
 
-  // Size / colour: each value a checkbox, in the merchant's own order (S, M, L — not alphabetical), counted over purchasable variants.
-  const optionOptions: AttributeOption[] = (facets?.options ?? [])
-    .map((axis) => ({ key: axis.key, label: localized(axis.name, locale), values: axis.values.map((value) => ({ key: value.key, label: localized(value.label, locale), count: value.count })) }))
-    .filter((axis) => axis.values.length > 0);
-  const inStockCount = facets?.inStockCount ?? 0;
+  // Every choice facet as plain data for the client: category (sheet only), brand, size / colour in the merchant's own order, then the merchant's attribute axes alphabetically.
+  const facetDefs: FacetDef[] = [];
+  if (categoryOptions.length > 0) facetDefs.push({ id: "category", source: "category", label: t("category"), mode: "single", values: categoryOptions.map((option) => ({ key: option.slug, label: option.label, count: option.count })) });
+  if (brandValues.length > 1) facetDefs.push({ id: "brand", source: "brand", label: t("brand"), mode: "single", values: brandValues });
+  for (const axis of facets?.options ?? []) {
+    if (axis.values.length === 0) continue;
+    facetDefs.push({ id: `opt-${axis.key}`, source: "opt", axis: axis.key, label: localized(axis.name, locale), mode: "multi", values: axis.values.map((value) => ({ key: value.key, label: localized(value.label, locale), count: value.count })) });
+  }
+  [...(facets?.attributes ?? [])]
+    .map((attribute) => ({ ...attribute, label: localized(attribute.name, locale) }))
+    .filter((attribute) => attribute.values.length > 0)
+    .sort((a, b) => a.label.localeCompare(b.label, locale))
+    .forEach((attribute) =>
+      facetDefs.push({
+        id: `attr-${attribute.key}`,
+        source: "attr",
+        axis: attribute.key,
+        label: attribute.label,
+        mode: "multi",
+        values: attribute.values.map((value) => ({ key: value.key, label: localized(value.label, locale), count: value.count })).sort((a, b) => a.label.localeCompare(b.label, locale)),
+      })
+    );
 
   return (
-    <div className="container-sf pt-6 lg:pt-10">
+    <div className="container-sf pt-5 lg:pt-8">
       {trail ? <Breadcrumbs trail={trail} className="mb-3 lg:mb-4" /> : null}
-      <div className="mb-5 flex flex-col gap-3 lg:mb-10">
-        <h1 className="t-title">{title}</h1>
-        {description ? <p className="max-w-2xl text-ink-secondary">{description}</p> : null}
-        <div className="rule" aria-hidden="true" />
-        <ListingControls
-          basePath={basePath}
-          state={state}
-          countLabel={t("productsCount", { n: formatNumber(locale, total) })}
-          categories={categoryOptions}
-          brands={brandOptions}
-          attributes={attributeOptions}
-          options={optionOptions}
-          inStockCount={inStockCount}
-          priceHint={priceHint}
-          appliedCount={chips.length}
-        />
-      </div>
+
+      <header className="gingham relative overflow-hidden rounded-panel px-5 py-5 lg:px-10 lg:py-7">
+        <Bow className="pointer-events-none absolute -end-3 top-1/2 w-24 -translate-y-1/2 rotate-[8deg] rtl:-scale-x-100 rtl:-rotate-[8deg] lg:end-8 lg:w-44" />
+        <div className="relative flex flex-col gap-1.5 pe-16 pt-2 lg:pe-52 lg:pt-0">
+          <h1 className="t-title">
+            <TitleWithHeart title={title} />
+          </h1>
+          {description ? <p className="max-w-2xl text-ink-secondary">{description}</p> : null}
+          {/* The one live region: the count changes as filters apply, and screen readers hear it. */}
+          <p role="status" className="tabular text-[0.9375rem] text-ink-secondary">
+            {ui("count", { n: total, shown: formatNumber(locale, total) })}
+          </p>
+        </div>
+      </header>
+
+      {categoryOptions.length > 0 ? (
+        <div className="mt-5 lg:mt-6">
+          <CategoryRail locale={locale} basePath={basePath} state={state} categories={categoryOptions} />
+        </div>
+      ) : null}
+
+      {/* No wrapper: the bar sticks to the viewport only for as long as its parent is tall — the page itself. */}
+      <ListingControls basePath={basePath} state={state} facets={facetDefs} priceRange={facets?.priceRange} currency={currency} inStockCount={facets?.inStockCount ?? 0} total={total} />
 
       {chips.length ? (
-        <ul className="mb-6 flex flex-wrap items-center gap-2">
+        <ul aria-label={ui("applied")} className="mb-6 mt-2 flex flex-wrap items-center gap-2">
           {chips.map((chip) => (
             <li key={chip.key}>
-              <Link href={chip.href} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line-strong ps-3.5 pe-2.5 text-[0.875rem]" aria-label={t("removeFilter", { label: chip.label })}>
+              <Link href={chip.href} scroll={false} className="inline-flex min-h-11 items-center gap-2 rounded-pill border border-action bg-blush ps-4 pe-3 text-[0.875rem] font-medium text-heading transition-colors duration-[var(--sf-duration-fast)] ease-standard hover:bg-blush-soft" aria-label={t("removeFilter", { label: chip.label })}>
                 {chip.label}
-                <X className="size-3.5" aria-hidden="true" />
+                <X className="size-4" aria-hidden="true" />
               </Link>
             </li>
           ))}
           <li>
-            <Link href={`${basePath}${toSearch({ sort: state.sort })}`} className="inline-flex min-h-10 items-center px-2 text-[0.875rem] font-medium text-action underline-offset-4 hover:underline">
+            <Link href={`${basePath}${toSearch({ sort: state.sort, q: chips.some((chip) => chip.key === "q") ? undefined : state.q })}`} scroll={false} className="inline-flex min-h-11 items-center px-3 text-[0.875rem] font-semibold text-action-ink underline-offset-4 hover:underline">
               {t("clearAll")}
             </Link>
           </li>
         </ul>
-      ) : null}
+      ) : (
+        <div className="h-4" />
+      )}
 
-      <div className="grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-12">
-        <aside className="hidden lg:block" aria-label={t("filter")}>
-          <div className="sticky top-[calc(72px+1.5rem)]">
-            <FacetPanel basePath={basePath} state={state} categories={categoryOptions} brands={brandOptions} attributes={attributeOptions} options={optionOptions} inStockCount={inStockCount} priceHint={priceHint} mode="immediate" />
-          </div>
-        </aside>
-        <div>
       {products.length > 0 ? (
         <>
           <ListingAnalytics listId={listId} productIds={products.map((product) => product.id)} searchQuery={state.q} resultCount={total} />
-          <ul className="grid grid-cols-2 gap-x-2.5 gap-y-6 md:grid-cols-3 md:gap-x-4 lg:gap-x-5 lg:gap-y-8 2xl:grid-cols-4">
+          <ul className="grid grid-cols-2 gap-x-2.5 gap-y-6 md:grid-cols-3 md:gap-x-4 lg:grid-cols-4 lg:gap-x-5 lg:gap-y-8 xl:grid-cols-5">
             {products.map((product, index) => (
-              <ProductCard key={product.slug} as="li" subgrid product={product} priority={index < 2} />
+              <ProductCard key={product.slug} as="li" subgrid product={product} priority={index < 2} sizes="(min-width: 1280px) 19vw, (min-width: 1024px) 24vw, (min-width: 768px) 31vw, 47vw" />
             ))}
           </ul>
           {totalPages > 1 ? (
@@ -156,7 +173,7 @@ export async function ListingView(props: ListingViewProps) {
           ) : null}
         </>
       ) : filtered ? (
-        <div className="flex flex-col items-start gap-4 border border-line bg-surface p-6 lg:p-10">
+        <div className="flex flex-col items-start gap-4 rounded-panel bg-panel p-6 lg:p-10">
           <h2 className="t-heading">{t("noMatchesTitle")}</h2>
           <p className="text-ink-secondary">{state.q ? t("noMatchesBody", { q: state.q }) : t("noMatchesFilters")}</p>
           {narrowest ? (
@@ -166,7 +183,7 @@ export async function ListingView(props: ListingViewProps) {
           ) : null}
         </div>
       ) : (
-        <div className="flex flex-col items-start gap-4 border border-line bg-surface p-6 lg:p-10">
+        <div className="flex flex-col items-start gap-4 rounded-panel bg-panel p-6 lg:p-10">
           <h2 className="t-heading">{t("nothingYetTitle")}</h2>
           <p className="text-ink-secondary">{t("nothingYetBody")}</p>
           <Link href="/" className="btn btn-secondary">
@@ -174,8 +191,6 @@ export async function ListingView(props: ListingViewProps) {
           </Link>
         </div>
       )}
-        </div>
-      </div>
     </div>
   );
 }

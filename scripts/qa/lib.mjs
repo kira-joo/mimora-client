@@ -73,17 +73,14 @@ export async function addLine(page, slug, quantity = 1) {
 }
 
 /**
- * What ground the page SHOULD be on (from the attributes the server rendered
- * and the emulated system scheme — tokens.css's rules), and what it IS on
- * (from the painted background). Both, so a mismatch is a finding.
+ * What ground the page SHOULD be on (from the attribute the server or the pre-paint script set —
+ * tokens.css follows nothing else: there is no "system" mode, so the emulated colour scheme the gates
+ * also vary must NOT change it), and what it IS on (from the painted background). Both, so a mismatch
+ * is a finding.
  */
 export function groundOf(page) {
   return page.evaluate(() => {
-    const root = document.documentElement;
-    const explicit = root.getAttribute("data-ground");
-    const darkEnabled = root.getAttribute("data-dark") === "enabled";
-    const systemDark = matchMedia("(prefers-color-scheme: dark)").matches;
-    const expected = explicit === "dark" || explicit === "light" ? explicit : darkEnabled && systemDark ? "dark" : "light";
+    const expected = document.documentElement.getAttribute("data-ground") === "dark" ? "dark" : "light";
     const [r, g, b] = getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g).map(Number);
     const lum = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
     const luminance = 0.2126 * lum(r) + 0.7152 * lum(g) + 0.0722 * lum(b);

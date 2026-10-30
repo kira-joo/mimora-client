@@ -1,148 +1,213 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ArrowUpDown, SlidersHorizontal } from "lucide-react";
+import { ArrowUpDown, Check, SlidersHorizontal } from "lucide-react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@kira-joo/frontend-toolkit-tailwind/server";
 import { useRouter } from "@/i18n/navigation";
 import { Sheet } from "@/components/ui/sheet";
-import { SORTS, selectedValues, toSearch, toggleAttribute, toggleOption, type ListingState } from "@/lib/catalog/listing-query";
+import { appliedFilterCount, clearFilters, facetClear, facetSelected, type FacetDef } from "@/lib/catalog/listing-facets";
+import { sliderScale } from "@/lib/catalog/listing-price";
+import { toSearch, type ListingState } from "@/lib/catalog/listing-query";
 import { formatNumber } from "@/lib/format/numerals";
 import type { Locale } from "@/i18n/routing";
+import { ChoiceChips, PriceRange, SORT_KEY, SortList, StockSwitch } from "./facet-bodies";
+import { FilterPopover, pillClass } from "./filter-popover";
 
-export interface CategoryOption {
-  slug: string;
-  label: string;
-  count: number;
-  child: boolean;
-}
-
-export interface BrandOption {
-  slug: string;
-  label: string;
-  count: number;
-}
-
-export interface AttributeOption {
-  key: string;
-  label: string;
-  values: Array<{ key: string; label: string; count: number }>;
-}
-
-const SORT_KEY = { newest: "sortNewest", price_asc: "sortPriceAsc", price_desc: "sortPriceDesc" } as const;
-const MONEY = /^\d+(\.\d{1,2})?$/;
-
-function useNavigateListing(basePath: string) {
-  const router = useRouter();
-  return (next: Partial<ListingState>) => router.push(`${basePath}${toSearch({ ...next, page: 1 })}`, { scroll: false });
-}
+export type { FacetDef } from "@/lib/catalog/listing-facets";
 
 interface ControlsProps {
   basePath: string;
   state: ListingState;
-  countLabel: string;
-  categories: CategoryOption[];
-  brands: BrandOption[];
-  attributes: AttributeOption[];
-  /** Variant option axes (size, colour), in the merchant's order, counted over purchasable variants. */
-  options: AttributeOption[];
-  /** Products in scope with a purchasable variant — the number beside the in-stock toggle. */
+  /** Every choice facet (category, brand, size/colour, the merchant's attributes) — plain data built on the server. */
+  facets: FacetDef[];
+  priceRange?: { min?: string; max?: string };
+  currency: string;
+  /** Products in scope with a purchasable variant — the number beside the in-stock pill. */
   inStockCount: number;
-  priceHint?: string;
-  appliedCount: number;
+  /** Products the applied filters show now. */
+  total: number;
 }
 
 /**
- * The count with the sort beside it (desktop), and on a phone a sticky
- * Filter / Sort bar whose Filter sheet shows the live result count of the
- * DRAFT before it is applied (design-system §13b).
+ * The filter bar. Desktop: one row of pills — availability, price, then one
+ * popover per facet, and the sort at the reading end (the categories are the
+ * rail above, not a sidebar). Phone: a sticky Filters / Sort pair whose sheet
+ * holds every facet. Every change is a navigation to a URL (listing state
+ * lives in the query string, server-rendered); popovers and the sheet edit a
+ * DRAFT and show the live result count of that draft before it is applied.
  */
-export function ListingControls({ basePath, state, countLabel, categories, brands, attributes, options, inStockCount, priceHint, appliedCount }: ControlsProps) {
+export function ListingControls({ basePath, state, facets, priceRange, currency, inStockCount, total }: ControlsProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations("common");
-  const navigate = useNavigateListing(basePath);
+  const ui = useTranslations("common.listingUi");
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const navigate = (next: ListingState) => startTransition(() => router.push(`${basePath}${toSearch({ ...next, page: 1 })}`, { scroll: false }));
+
+  const [openId, setOpenId] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [draft, setDraft] = useState(state);
+  const [priceInvalid, setPriceInvalid] = useState(false);
+  // The draft follows the URL whenever the URL changes (adjusting state during render, not in an effect).
+  const key = toSearch({ ...state, page: 1 });
+  const [syncedKey, setSyncedKey] = useState(key);
+  if (syncedKey !== key) {
+    setSyncedKey(key);
+    setDraft(state);
+  }
+  const scale = sliderScale(priceRange);
+  const count = useDraftCount(openId !== null, draft, state, total);
+  const applied = appliedFilterCount(state);
+
+  function setOpen(id: string, open: boolean) {
+    if (open) setOpenId(id);
+    else {
+      setOpenId((current) => (current === id ? null : current));
+      setDraft(state);
+    }
+  }
+  function apply() {
+    setOpenId(null);
+    navigate(draft);
+  }
+
+  const priceOn = Boolean(state.minPrice || state.maxPrice);
+  const priceSummary = state.minPrice && state.maxPrice ? `${formatNumber(locale, Number(state.minPrice))}–${formatNumber(locale, Number(state.maxPrice))}` : state.minPrice ? `${t("priceFrom")} ${formatNumber(locale, Number(state.minPrice))}` : state.maxPrice ? `${t("priceTo")} ${formatNumber(locale, Number(state.maxPrice))}` : undefined;
 
   return (
-    <>
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-[0.9375rem] text-ink-secondary" aria-live="polite">
-          {countLabel}
-        </p>
-        {/* Desktop: sort sits beside the count it reorders. On a phone the Sort trigger lives in the sticky bar below. */}
-        <label className="hidden items-center gap-2 text-[0.9375rem] lg:flex">
-          <span className="text-ink-muted">{t("sort")}</span>
-          <select value={state.sort} onChange={(event) => navigate({ ...state, sort: event.target.value as ListingState["sort"] })} className="min-h-11 cursor-pointer border-0 border-b border-line-strong bg-transparent pe-1 font-medium text-ink hover:border-ink focus-visible:border-ink">
-            {SORTS.map((sort) => (
-              <option key={sort} value={sort}>
-                {t(SORT_KEY[sort])}
-              </option>
-            ))}
-          </select>
-        </label>
+    <section aria-label={ui("barLabel")} className="sticky top-[var(--sf-header-height)] z-20 -mx-[var(--sf-gutter)] mt-2 bg-canvas px-[var(--sf-gutter)] py-3">
+      <div className="hidden flex-wrap items-center gap-2 lg:flex">
+        <button type="button" aria-pressed={state.inStock} className={pillClass(state.inStock)} onClick={() => navigate({ ...state, inStock: !state.inStock })}>
+          <Check className={cn("size-4", !state.inStock && "hidden")} aria-hidden="true" />
+          {t("catalogExtras.inStockOnly")}
+          <span className="tabular text-[0.8125rem] font-normal text-ink-secondary">{formatNumber(locale, inStockCount)}</span>
+        </button>
+
+        <FilterPopover open={openId === "price"} onOpenChange={(open) => setOpen("price", open)} label={t("priceRange")} summary={priceSummary} on={priceOn}>
+          <PanelFrame
+            count={count}
+            disabled={priceInvalid}
+            onApply={apply}
+            onReset={() => setDraft({ ...draft, minPrice: undefined, maxPrice: undefined })}
+            canReset={Boolean(draft.minPrice || draft.maxPrice)}
+          >
+            <PriceRange min={draft.minPrice} max={draft.maxPrice} scale={scale} currency={currency} onChange={(minPrice, maxPrice) => setDraft({ ...draft, minPrice, maxPrice })} onInvalid={setPriceInvalid} />
+          </PanelFrame>
+        </FilterPopover>
+
+        {facets
+          .filter((facet) => facet.source !== "category")
+          .map((facet) => {
+            const chosen = facetSelected(facet, state).length;
+            return (
+              <FilterPopover key={facet.id} open={openId === facet.id} onOpenChange={(open) => setOpen(facet.id, open)} label={facet.label} summary={chosen ? formatNumber(locale, chosen) : undefined} on={chosen > 0}>
+                <PanelFrame count={count} onApply={apply} onReset={() => setDraft(facetClear(facet, draft))} canReset={facetSelected(facet, draft).length > 0}>
+                  <ChoiceChips def={facet} state={draft} onChange={setDraft} scope="bar" />
+                </PanelFrame>
+              </FilterPopover>
+            );
+          })}
+
+        <FilterPopover className="ms-auto" align="end" open={openId === "sort"} onOpenChange={(open) => setOpen("sort", open)} label={`${t("sort")}: ${t(SORT_KEY[state.sort])}`} on={state.sort !== "newest"}>
+          <SortList
+            value={state.sort}
+            scope="bar"
+            onSelect={(sort) => {
+              setOpenId(null);
+              navigate({ ...state, sort });
+            }}
+          />
+        </FilterPopover>
       </div>
 
-      <div className="sticky top-[var(--sf-header-height)] z-20 -mx-[var(--sf-gutter)] mt-2 grid grid-cols-2 border-y border-line bg-canvas lg:hidden">
-        <button type="button" onClick={() => setFiltersOpen(true)} className="inline-flex min-h-12 items-center justify-center gap-2 border-e border-line font-medium">
+      <div className="grid grid-cols-2 gap-2 lg:hidden">
+        <button type="button" onClick={() => setFiltersOpen(true)} className={cn(pillClass(applied > 0), "justify-center")}>
           <SlidersHorizontal className="size-4" aria-hidden="true" />
           {t("filter")}
-          {appliedCount ? <span className="tabular rounded-full bg-ink px-1.5 text-[0.75rem] leading-5 text-canvas">{formatNumber(locale, appliedCount)}</span> : null}
+          {applied ? <span className="tabular rounded-pill bg-action px-2 text-[0.8125rem] leading-6 text-on-action">{formatNumber(locale, applied)}</span> : null}
         </button>
-        <button type="button" onClick={() => setSortOpen(true)} className="inline-flex min-h-12 items-center justify-center gap-2 font-medium">
+        <button type="button" onClick={() => setSortOpen(true)} className={cn(pillClass(state.sort !== "newest"), "justify-center")}>
           <ArrowUpDown className="size-4" aria-hidden="true" />
           {t(SORT_KEY[state.sort])}
         </button>
       </div>
 
-      <FilterSheet open={filtersOpen} onClose={() => setFiltersOpen(false)} basePath={basePath} state={state} categories={categories} brands={brands} attributes={attributes} options={options} inStockCount={inStockCount} priceHint={priceHint} />
+      <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-action transition-opacity duration-[var(--sf-duration-standard)]", pending ? "opacity-100" : "opacity-0")} />
+
+      <FilterSheet open={filtersOpen} onClose={() => setFiltersOpen(false)} state={state} facets={facets} scale={scale} currency={currency} inStockCount={inStockCount} total={total} onApply={(next) => navigate(next)} />
 
       <Sheet open={sortOpen} onClose={() => setSortOpen(false)} side="bottom" title={t("sort")} closeLabel={t("close")}>
-        <ul className="flex flex-col">
-          {SORTS.map((sort) => (
-            <li key={sort} className="border-b border-line">
-              <button
-                type="button"
-                aria-pressed={state.sort === sort}
-                onClick={() => {
-                  setSortOpen(false);
-                  navigate({ ...state, sort });
-                }}
-                className={cn("flex min-h-14 w-full items-center justify-between text-start", state.sort === sort && "font-semibold")}
-              >
-                {t(SORT_KEY[sort])}
-                {state.sort === sort ? <span className="size-2.5 rounded-full bg-action" aria-hidden="true" /> : null}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <SortList
+          value={state.sort}
+          scope="sheet"
+          onSelect={(sort) => {
+            setSortOpen(false);
+            navigate({ ...state, sort });
+          }}
+        />
       </Sheet>
-    </>
+    </section>
   );
 }
 
-function FilterSheet({ open, onClose, basePath, state, categories, brands, attributes, options, inStockCount, priceHint }: { open: boolean; onClose(): void; basePath: string; state: ListingState; categories: CategoryOption[]; brands: BrandOption[]; attributes: AttributeOption[]; options: AttributeOption[]; inStockCount: number; priceHint?: string }) {
+/** Popover body furniture: the facet, then Reset (this facet only) and Show N (the live count of the draft). */
+function PanelFrame({ children, count, onApply, onReset, canReset, disabled = false }: { children: ReactNode; count: number | null; onApply(): void; onReset(): void; canReset: boolean; disabled?: boolean }) {
+  const t = useTranslations("common");
+  const ui = useTranslations("common.listingUi");
+  const locale = useLocale() as Locale;
+  return (
+    <div className="flex flex-col gap-5">
+      {children}
+      <div className="flex items-center gap-3 border-t border-line pt-4">
+        <button type="button" className="inline-flex min-h-11 items-center rounded-pill px-3 text-[0.9375rem] font-semibold text-action-ink underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:text-ink-muted disabled:no-underline" disabled={!canReset} onClick={onReset}>
+          {ui("reset")}
+        </button>
+        <button type="button" className="btn btn-primary flex-1" disabled={disabled || count === 0} onClick={onApply}>
+          {count === null ? t("showResults") : ui("show", { n: count, shown: formatNumber(locale, count) })}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** The result count a draft would show: the page's own total while nothing differs, otherwise a short debounced look-up (cached product content on the server). `null` while it loads. */
+function useDraftCount(active: boolean, draft: ListingState, applied: ListingState, total: number): number | null {
+  const draftKey = toSearch({ ...draft, page: 1 });
+  const dirty = draftKey !== toSearch({ ...applied, page: 1 });
+  const [fetched, setFetched] = useState<{ key: string; total: number | null } | null>(null);
+
+  useEffect(() => {
+    if (!active || !dirty) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      fetch(`/api/catalog/count${draftKey}`, { signal: controller.signal })
+        .then((response) => response.json())
+        .then((body: { total: number | null }) => setFetched({ key: draftKey, total: body.total }))
+        .catch(() => undefined);
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [active, dirty, draftKey]);
+
+  if (!dirty) return total;
+  return fetched?.key === draftKey ? fetched.total : null;
+}
+
+function FilterSheet({ open, onClose, state, facets, scale, currency, inStockCount, total, onApply }: { open: boolean; onClose(): void; state: ListingState; facets: FacetDef[]; scale: ReturnType<typeof sliderScale>; currency: string; inStockCount: number; total: number; onApply(next: ListingState): void }) {
   const locale = useLocale() as Locale;
   const t = useTranslations("common");
-  const navigate = useNavigateListing(basePath);
-  const [draft, setDraft] = useState<ListingState>(state);
-  const [count, setCount] = useState<number | null>(null);
+  const ui = useTranslations("common.listingUi");
+  const [draft, setDraft] = useState(state);
+  const [priceInvalid, setPriceInvalid] = useState(false);
+  const count = useDraftCount(open, draft, state, total);
 
   useEffect(() => {
     if (open) setDraft(state);
   }, [open, state]);
-
-  // The live count of the draft — product content, cached on the server; aborted when the draft changes again.
-  useEffect(() => {
-    if (!open) return;
-    const controller = new AbortController();
-    setCount(null);
-    fetch(`/api/catalog/count${toSearch({ ...draft, page: 1 })}`, { signal: controller.signal })
-      .then((response) => response.json())
-      .then((body: { total: number | null }) => setCount(body.total))
-      .catch(() => undefined);
-    return () => controller.abort();
-  }, [open, draft]);
 
   return (
     <Sheet
@@ -153,180 +218,36 @@ function FilterSheet({ open, onClose, basePath, state, categories, brands, attri
       closeLabel={t("close")}
       footer={
         <div className="flex gap-3">
-          <button type="button" className="btn btn-secondary" onClick={() => setDraft({ sort: state.sort, page: 1, q: state.q, attr: [], opt: [], inStock: false })}>
+          <button type="button" className="btn btn-secondary" onClick={() => setDraft(clearFilters(draft))}>
             {t("clearAll")}
           </button>
           <button
             type="button"
             className="btn btn-primary flex-1"
-            disabled={count === 0}
+            disabled={count === 0 || priceInvalid}
             onClick={() => {
               onClose();
-              navigate(draft);
+              onApply(draft);
             }}
           >
-            {count === null ? t("showResults") : t("showProducts", { n: formatNumber(locale, count) })}
+            {count === null ? t("showResults") : ui("show", { n: count, shown: formatNumber(locale, count) })}
           </button>
         </div>
       }
     >
-      <FacetPanel basePath={basePath} state={draft} categories={categories} brands={brands} attributes={attributes} options={options} inStockCount={inStockCount} priceHint={priceHint} mode="draft" onDraft={setDraft} />
+      <div className="flex flex-col gap-7">
+        <StockSwitch checked={draft.inStock} count={inStockCount} scope="sheet" onChange={(inStock) => setDraft({ ...draft, inStock })} />
+        {facets.map((facet) => (
+          <section key={facet.id} className="flex flex-col gap-3">
+            <h3 className="t-heading">{facet.label}</h3>
+            <ChoiceChips def={facet} state={draft} onChange={setDraft} scope="sheet" />
+          </section>
+        ))}
+        <section className="flex flex-col gap-3">
+          <h3 className="t-heading">{t("priceRange")}</h3>
+          <PriceRange min={draft.minPrice} max={draft.maxPrice} scale={scale} currency={currency} onChange={(minPrice, maxPrice) => setDraft({ ...draft, minPrice, maxPrice })} onInvalid={setPriceInvalid} />
+        </section>
+      </div>
     </Sheet>
-  );
-}
-
-interface FacetPanelProps {
-  basePath: string;
-  state: ListingState;
-  categories: CategoryOption[];
-  brands: BrandOption[];
-  attributes: AttributeOption[];
-  options: AttributeOption[];
-  inStockCount: number;
-  priceHint?: string;
-  /** `immediate` (desktop column) navigates on each change; `draft` (phone sheet) only updates the draft. */
-  mode: "immediate" | "draft";
-  onDraft?: (next: ListingState) => void;
-}
-
-/** The supported facets — in stock, category, brand, size/colour, the merchant's attribute axes, price — and nothing the backend cannot actually filter on. */
-export function FacetPanel({ basePath, state, categories, brands, attributes, options, inStockCount, priceHint, mode, onDraft }: FacetPanelProps) {
-  const locale = useLocale() as Locale;
-  const t = useTranslations("common");
-  const navigate = useNavigateListing(basePath);
-  const apply = (next: ListingState) => (mode === "immediate" ? navigate(next) : onDraft?.(next));
-  const [min, setMin] = useState(state.minPrice ?? "");
-  const [max, setMax] = useState(state.maxPrice ?? "");
-  useEffect(() => {
-    setMin(state.minPrice ?? "");
-    setMax(state.maxPrice ?? "");
-  }, [state.minPrice, state.maxPrice]);
-  const priceValid = (!min || MONEY.test(min)) && (!max || MONEY.test(max));
-
-  const row =
-    "-mx-3 flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-[var(--sf-radius-control)] px-3 text-[0.9375rem] transition-colors duration-[var(--sf-duration-fast)] hover:bg-surface-muted has-[:checked]:bg-surface-muted has-[:checked]:font-semibold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus";
-  const name = (group: string) => `${group}-${mode}`;
-
-  return (
-    <div className="flex flex-col divide-y divide-line">
-      {/* Availability first: the one facet that is about whether you can buy it at all. */}
-      <fieldset className="pb-6">
-        <legend className="sr-only">{t("catalogExtras.inStockOnly")}</legend>
-        <label className={row}>
-          <span className="flex items-center gap-2.5">
-            <input type="checkbox" name={name("inStock")} checked={state.inStock} onChange={() => apply({ ...state, inStock: !state.inStock })} className="size-4 accent-[var(--sf-action)]" />
-            <span className="flex flex-col">
-              {t("catalogExtras.inStockOnly")}
-              <span className="text-[0.8125rem] font-normal text-ink-muted">{t("catalogExtras.inStockOnlyHint")}</span>
-            </span>
-          </span>
-          <span className="tabular text-[0.875rem] font-normal text-ink-muted">{formatNumber(locale, inStockCount)}</span>
-        </label>
-      </fieldset>
-      {categories.length > 0 ? (
-        <fieldset className="py-6">
-          <legend className="float-start mb-2 w-full p-0 font-semibold">{t("category")}</legend>
-          <div className="clear-both" />
-          <label className={row}>
-            <span className="flex items-center gap-2.5">
-              <input type="radio" name={name("category")} checked={!state.category} onChange={() => apply({ ...state, category: undefined })} className="size-4 accent-[var(--sf-action)]" />
-              {t("allCategories")}
-            </span>
-          </label>
-          {categories.map((facet) => (
-            <label key={facet.slug} className={cn(row, facet.child && "ps-7")}>
-              <span className="flex items-center gap-2.5">
-                <input type="radio" name={name("category")} checked={state.category === facet.slug} onChange={() => apply({ ...state, category: facet.slug })} className="size-4 accent-[var(--sf-action)]" />
-                {facet.label}
-              </span>
-              <span className="tabular text-[0.875rem] font-normal text-ink-muted">{formatNumber(locale, facet.count)}</span>
-            </label>
-          ))}
-        </fieldset>
-      ) : null}
-      {brands.length > 1 ? (
-        <fieldset className="py-6">
-          <legend className="float-start mb-2 w-full p-0 font-semibold">{t("brand")}</legend>
-          <div className="clear-both" />
-          <label className={row}>
-            <span className="flex items-center gap-2.5">
-              <input type="radio" name={name("brand")} checked={!state.brand} onChange={() => apply({ ...state, brand: undefined })} className="size-4 accent-[var(--sf-action)]" />
-              {t("allBrands")}
-            </span>
-          </label>
-          {brands.map((facet) => (
-            <label key={facet.slug} className={row}>
-              <span className="flex items-center gap-2.5">
-                <input type="radio" name={name("brand")} checked={state.brand === facet.slug} onChange={() => apply({ ...state, brand: facet.slug })} className="size-4 accent-[var(--sf-action)]" />
-                {facet.label}
-              </span>
-              <span className="tabular text-[0.875rem] font-normal text-ink-muted">{formatNumber(locale, facet.count)}</span>
-            </label>
-          ))}
-        </fieldset>
-      ) : null}
-      {options.map((axis) => {
-        const chosen = selectedValues(state.opt, axis.key);
-        return (
-          <fieldset key={`opt-${axis.key}`} className="py-6">
-            <legend className="float-start mb-2 w-full p-0 font-semibold">{axis.label}</legend>
-            <div className="clear-both" />
-            {axis.values.map((value) => (
-              <label key={value.key} className={row}>
-                <span className="flex items-center gap-2.5">
-                  <input type="checkbox" name={name(`opt-${axis.key}`)} checked={chosen.includes(value.key)} onChange={() => apply({ ...state, opt: toggleOption(state.opt, axis.key, value.key) })} className="size-4 accent-[var(--sf-action)]" />
-                  {value.label}
-                </span>
-                <span className="tabular text-[0.875rem] font-normal text-ink-muted">{formatNumber(locale, value.count)}</span>
-              </label>
-            ))}
-          </fieldset>
-        );
-      })}
-      {attributes.map((attribute) => {
-        const chosen = selectedValues(state.attr, attribute.key);
-        return (
-          <fieldset key={attribute.key} className="py-6">
-            <legend className="float-start mb-2 w-full p-0 font-semibold">{attribute.label}</legend>
-            <div className="clear-both" />
-            {attribute.values.map((value) => (
-              <label key={value.key} className={row}>
-                <span className="flex items-center gap-2.5">
-                  <input type="checkbox" name={name(`attr-${attribute.key}`)} checked={chosen.includes(value.key)} onChange={() => apply({ ...state, attr: toggleAttribute(state.attr, attribute.key, value.key) })} className="size-4 accent-[var(--sf-action)]" />
-                  {value.label}
-                </span>
-                <span className="tabular text-[0.875rem] font-normal text-ink-muted">{formatNumber(locale, value.count)}</span>
-              </label>
-            ))}
-          </fieldset>
-        );
-      })}
-      <fieldset className="pt-6">
-        <legend className="float-start mb-1 w-full p-0 font-semibold">{t("priceRange")}</legend>
-        {priceHint ? <p className="clear-both mb-3 text-[0.8125rem] text-ink-muted">{priceHint}</p> : <div className="clear-both" />}
-        <form
-          className="flex items-end gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (priceValid) apply({ ...state, minPrice: min || undefined, maxPrice: max || undefined });
-          }}
-        >
-          <label className="flex min-w-0 flex-1 flex-col gap-1 text-[0.8125rem] text-ink-secondary">
-            {t("priceFrom")}
-            <input inputMode="decimal" dir="ltr" value={min} onChange={(event) => setMin(event.target.value.trim())} onBlur={() => mode === "draft" && priceValid && apply({ ...state, minPrice: min || undefined })} className="field tabular" aria-invalid={!priceValid || undefined} />
-          </label>
-          <label className="flex min-w-0 flex-1 flex-col gap-1 text-[0.8125rem] text-ink-secondary">
-            {t("priceTo")}
-            <input inputMode="decimal" dir="ltr" value={max} onChange={(event) => setMax(event.target.value.trim())} onBlur={() => mode === "draft" && priceValid && apply({ ...state, maxPrice: max || undefined })} className="field tabular" aria-invalid={!priceValid || undefined} />
-          </label>
-          {mode === "immediate" ? (
-            <button type="submit" className="btn btn-secondary min-h-12 px-3" disabled={!priceValid}>
-              {t("apply")}
-            </button>
-          ) : null}
-        </form>
-        {!priceValid ? <p className="mt-2 text-[0.8125rem] font-medium text-critical">{t("priceInvalid")}</p> : null}
-      </fieldset>
-    </div>
   );
 }

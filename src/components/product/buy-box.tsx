@@ -25,6 +25,7 @@ import { StockLine } from "./stock-line";
 import { VariantSelector } from "./variant-selector";
 import { WishlistButton } from "./wishlist-button";
 import { MOTION } from "@/lib/motion/tokens";
+import { useFloatingDock } from "@/lib/hooks/use-floating-dock";
 
 export interface BuyBoxProps {
   productId: string;
@@ -58,6 +59,7 @@ export function BuyBox({ productId, slug, name, optionAxes, initialVariants, rat
   const t = useTranslations("common");
   const currency = useCurrency();
   const reduce = useReducedMotion();
+  const dock = useFloatingDock();
   const addToCart = useAddToCart();
   const { announceAdded } = useCartUi();
   // Viewing a product page is `view_item` — once per product, however the variant selection then changes.
@@ -240,6 +242,7 @@ export function BuyBox({ productId, slug, name, optionAxes, initialVariants, rat
       <AnimatePresence>
         {!buttonVisible ? (
           <motion.div
+            ref={dock}
             className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-canvas px-[var(--sf-gutter)] pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-[var(--sf-elevation-sheet)] lg:hidden"
             initial={reduce ? { opacity: 0 } : { y: "100%" }}
             animate={reduce ? { opacity: 1 } : { y: 0 }}

@@ -46,8 +46,6 @@
   --sf-ribbon-light: #f6a5b4;
   --sf-ribbon-mid: #ea7f95;
   --sf-ribbon-dark: #c9566f;
-  --sf-glow-a: #fcdbd8;
-  --sf-glow-b: #fdeae3;
   --sf-panel: #fdeee3;
   --sf-chip: rgb(255 250 246 / 0.88);
 
@@ -68,58 +66,12 @@
 }
 
 /*
- * D-3 cascade. The system preference applies only when the merchant offers the
- * dark ground (D-S5: off by default) — `data-dark="enabled"`. An explicit
- * visitor choice is `data-ground`, set by a synchronous script before paint.
+ * Mimora has two grounds and no "system" mode: the device's colour-scheme
+ * preference is deliberately NOT followed. A page is light unless the store's
+ * default ground is dark or the visitor chose dark — both arrive as
+ * `data-ground="dark"` (server-rendered default, or the pre-paint script).
  * The dark ground is a deep berry/plum version of the same cream-and-blush system.
  */
-@media (prefers-color-scheme: dark) {
-  :root[data-dark="enabled"]:not([data-ground="light"]) {
-    --sf-canvas: #1f0f17;
-    --sf-surface: #2a1621;
-    --sf-surface-muted: #34202c;
-    --sf-ink: #fbe8e6;
-    --sf-ink-secondary: #e8cdd0;
-    --sf-ink-muted: #c9a9ae;
-    --sf-line: #44303b;
-    --sf-line-strong: #9a7482;
-    --sf-action: #bc7380;
-    --sf-action-hover: #c98592;
-    --sf-action-ink: color-mix(in oklab, var(--sf-action) 65%, white);
-    --sf-on-action: #2a0f1a;
-    --sf-support: #e9a9b4;
-    --sf-on-support: #2a0f1a;
-    --sf-focus: #e9a9b4;
-    --sf-positive: #6fd49b;
-    --sf-caution: #e6b266;
-    --sf-critical: #ff8a80;
-    --sf-heading: #ffd6dc;
-    --sf-ornament: #e8a0ae;
-    --sf-band: #7a3347;
-    --sf-on-band: #ffffff;
-    --sf-blush: #4a2634;
-    --sf-blush-soft: #3a1f2b;
-    --sf-gingham-base: #2f1a25;
-    --sf-gingham-stripe: rgb(94 44 62 / 0.55);
-    --sf-ribbon-light: #e48ca0;
-    --sf-ribbon-mid: #cf6b83;
-    --sf-ribbon-dark: #a94862;
-    --sf-glow-a: #3d2030;
-    --sf-glow-b: #2a1621;
-    --sf-panel: #34202c;
-    --sf-chip: rgb(42 22 33 / 0.88);
-    --sf-scrim-strong: rgb(20 8 14 / 0.8);
-    --sf-scrim-soft: rgb(20 8 14 / 0);
-    --sf-media-ring: inset 0 0 0 1px rgb(255 255 255 / 0.08);
-    --sf-media-shadow: none;
-    --sf-media-edge: none;
-    --sf-card-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 30px -16px rgb(0 0 0 / 0.6);
-    --sf-elevation-sheet: 0 -12px 40px -12px rgb(0 0 0 / 0.6);
-    --sf-backdrop: rgb(0 0 0 / 0.6);
-    color-scheme: dark;
-  }
-}
-
 :root[data-ground="dark"] {
   --sf-canvas: #1f0f17;
   --sf-surface: #2a1621;
@@ -150,8 +102,6 @@
   --sf-ribbon-light: #e48ca0;
   --sf-ribbon-mid: #cf6b83;
   --sf-ribbon-dark: #a94862;
-  --sf-glow-a: #3d2030;
-  --sf-glow-b: #2a1621;
   --sf-panel: #34202c;
   --sf-chip: rgb(42 22 33 / 0.88);
   --sf-scrim-strong: rgb(20 8 14 / 0.8);
@@ -194,6 +144,8 @@
   --sf-radius-panel: calc(28px * var(--sf-brand-radius-scale, 1));
   --sf-radius-pill: 999px;
   --sf-gingham-size: 14px;
+  /* The footer's gingham ribbon: the same check at half scale, so a narrow strip still reads as gingham. */
+  --sf-gingham-ribbon: 7px;
 
   /* §14 */
   --sf-duration-fast: 150ms;
@@ -208,6 +160,26 @@
   --sf-ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
   --sf-header-height: 64px;
+}
+
+/*
+ * Home hero banners — declared once, never per ground. The frame's shape is the
+ * first banner's own aspect ratio from md (set inline from the image, so that
+ * artwork is never cropped) and, on a phone, its portrait version's aspect; nothing that loads or moves
+ * ever changes it. The banners are light pink artwork on BOTH grounds, so the copy
+ * laid over banners 2 and 3 keeps the light ground's wine and muted ink in dark
+ * mode too — these are deliberately not redefined under data-ground="dark".
+ */
+:root {
+  --sf-hero-headline: calc(clamp(1.625rem, 0.9rem + 2.6vw, 3.5rem) * var(--sf-display-scale));
+  --sf-banner-ink: #6e1a2f;
+  --sf-banner-ink-muted: #5c3a41;
+  /* A phone stacks the copy at the foot of the frame, over the photograph's busier middle: a light veil keeps it legible. */
+  --sf-banner-veil: rgb(253 242 238 / 0.94);
+  /* Pagination dots sit on the artwork: wine at rest, the light ground's rose when current, each lifted by a light halo over busy photography. */
+  --sf-banner-dot: rgb(110 26 47 / 0.42);
+  --sf-banner-dot-active: #a54f5e;
+  --sf-banner-dot-halo: rgb(255 255 255 / 0.75);
 }
 
 /* Naskh has no 500: Arabic display text takes its semibold so headings keep their weight. */

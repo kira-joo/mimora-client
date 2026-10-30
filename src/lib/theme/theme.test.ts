@@ -14,7 +14,7 @@ describe("brand CSS", () => {
   it("paints the resolved fills per ground, under the same selectors as tokens.css", () => {
     const css = brandCss(theme());
     expect(css).toContain(":root{--sf-action:#2f6e8c;");
-    expect(css).toContain(':root[data-dark="enabled"]:not([data-ground="light"]){--sf-action:#3985a9;');
+    expect(css).not.toContain("prefers-color-scheme");
     expect(css).toContain(':root[data-ground="dark"]{--sf-action:#3985a9;');
   });
 

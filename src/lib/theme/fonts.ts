@@ -1,11 +1,11 @@
 import localFont from "next/font/local";
 
 /*
- * design-system §6 / D-S4: every face covers Arabic AND Latin. The merchant
- * picks a pairing (`brand.typographyChoice`); the default pairing (Naskh +
- * Sans Arabic) is preloaded, the alternatives are not — a store using one of
- * them pays one late swap rather than every store paying for fourteen
- * preloaded files. Mono is for Latin codes only (SKUs, order numbers).
+ * Mimora's typography is fixed here, in code: Playfair Display for Latin
+ * display text, Noto Naskh Arabic for Arabic display, Noto Sans Arabic for
+ * text. There is no merchant-selectable pairing (the template's
+ * `typographyChoice` was removed). Mono is for Latin codes only (SKUs, order
+ * numbers).
  */
 /*
  * Self-hosted (src/fonts, see src/fonts/README.md): a production build must not
@@ -36,24 +36,17 @@ export const sansArabic = localFont({
   variable: "--font-sans-ar",
   display: "swap",
 });
-export const kufi = localFont({
+/*
+ * The Latin display serif (OFL, variable wght 400-900, upright + italic). It has no Arabic: in a display stack Arabic
+ * text falls through to Naskh. The files are unsubset on purpose — see src/fonts/README.md (Reserved Font Name).
+ */
+export const playfair = localFont({
   src: [
-    { path: "../../fonts/noto-kufi-arabic/NotoKufiArabic-full.woff2", weight: "400", style: "normal" },
-    { path: "../../fonts/noto-kufi-arabic/NotoKufiArabic-full.woff2", weight: "600", style: "normal" },
+    { path: "../../fonts/playfair-display/PlayfairDisplay-VF.woff2", weight: "400 900", style: "normal" },
+    { path: "../../fonts/playfair-display/PlayfairDisplay-Italic-VF.woff2", weight: "400 900", style: "italic" },
   ],
-  variable: "--font-kufi",
+  variable: "--font-playfair",
   display: "swap",
-  preload: false,
-});
-export const plexArabic = localFont({
-  src: [
-    { path: "../../fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Regular.woff2", weight: "400", style: "normal" },
-    { path: "../../fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Medium.woff2", weight: "500", style: "normal" },
-    { path: "../../fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-SemiBold.woff2", weight: "600", style: "normal" },
-  ],
-  variable: "--font-plex-ar",
-  display: "swap",
-  preload: false,
 });
 export const plexMono = localFont({
   src: [
@@ -65,4 +58,4 @@ export const plexMono = localFont({
   preload: false,
 });
 
-export const fontVariables = [naskh, sansArabic, kufi, plexArabic, plexMono].map((font) => font.variable).join(" ");
+export const fontVariables = [naskh, sansArabic, playfair, plexMono].map((font) => font.variable).join(" ");

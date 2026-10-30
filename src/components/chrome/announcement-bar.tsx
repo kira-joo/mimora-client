@@ -1,61 +1,51 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { localized } from "@/lib/format/numerals";
 import { linkHref } from "@/lib/links";
 import type { StorefrontContent } from "@/lib/api/types";
-import type { Locale } from "@/i18n/routing";
-
-const DISMISSED_KEY = "sf-announcement-dismissed";
+import { Sparkle } from "@/components/home/ornaments";
+import { useStore } from "@/components/providers/store-context";
+import { LOCALES, type Locale } from "@/i18n/routing";
+import { LocaleSwitch } from "./locale-switch";
 
 /**
- * design-system §13a: one message, optional link, static — no marquee, no
- * rotation. Dismissible, remembered for the session; a NEW message shows again
- * (the key carries the message text).
+ * The band above the header: one static message (no marquee, no rotation), an
+ * optional link, and the language switch at the reading end. The band is shown when
+ * there is a message OR a language to switch to — the switch must not disappear with
+ * the announcement. Its colour is the Mimora `band` token, chosen to carry white
+ * text at AA.
  */
 export function AnnouncementBar({ announcement }: { announcement: StorefrontContent["announcement"] }) {
   const locale = useLocale() as Locale;
   const t = useTranslations("common");
-  const [hidden, setHidden] = useState(false);
+  const { supportedLocales } = useStore();
   const text = announcement ? localized(announcement.message, locale) : "";
+  const canSwitch = LOCALES.some((candidate) => candidate !== locale && (supportedLocales ?? LOCALES).includes(candidate));
 
-  useEffect(() => {
-    try {
-      if (text && window.sessionStorage.getItem(DISMISSED_KEY) === text) setHidden(true);
-    } catch {
-      /* storage blocked — shown */
-    }
-  }, [text]);
-
-  if (!announcement || !text || hidden) return null;
+  if (!text && !canSwitch) return null;
   return (
-    <div className="bg-support text-on-support">
-      <div className="container-sf flex min-h-10 items-center justify-center gap-2 text-center text-[0.8125rem] font-medium">
-        {announcement.link ? (
-          <Link href={linkHref(announcement.link)} className="-my-0.5 inline-flex min-h-11 items-center underline-offset-4 hover:underline">
-            {text}
-          </Link>
+    <div className="bg-band text-on-band" role="region" aria-label={t("announcementRegion")}>
+      <div className="container-sf grid min-h-10 grid-cols-[1fr_auto] items-center gap-2 lg:grid-cols-[1fr_auto_1fr]">
+        <span className="hidden lg:block" aria-hidden="true" />
+        {text ? (
+          <p className="flex items-center justify-center gap-2 py-1.5 text-center text-[0.75rem] font-medium leading-snug max-lg:col-start-1 max-lg:row-start-1 sm:text-[0.8125rem]">
+            <Sparkle className="size-3.5 flex-none opacity-80 max-sm:hidden" />
+            {announcement?.link ? (
+              <Link href={linkHref(announcement.link)} className="-my-1.5 inline-flex min-h-11 items-center underline-offset-4 hover:underline focus-visible:outline-on-band">
+                {text}
+              </Link>
+            ) : (
+              <span>{text}</span>
+            )}
+          </p>
         ) : (
-          <span className="py-2">{text}</span>
+          <span className="lg:col-start-2" aria-hidden="true" />
         )}
-        <button
-          type="button"
-          className="-my-0.5 -me-2 inline-flex size-11 flex-none items-center justify-center"
-          aria-label={t("dismiss")}
-          onClick={() => {
-            setHidden(true);
-            try {
-              window.sessionStorage.setItem(DISMISSED_KEY, text);
-            } catch {
-              /* storage blocked */
-            }
-          }}
-        >
-          <X className="size-4" aria-hidden="true" />
-        </button>
+        <div className="flex justify-end max-lg:col-start-2 max-lg:row-start-1">
+          <LocaleSwitch variant="inline" />
+        </div>
       </div>
     </div>
   );

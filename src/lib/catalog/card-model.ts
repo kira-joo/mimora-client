@@ -21,6 +21,8 @@ export interface CardProduct {
   priceIsRange: boolean;
   compareAt?: string;
   soldOut: boolean;
+  /** Purchasable variants per the listing response (cached hint — the add path re-checks live). Absent for hand-built cards. */
+  purchasableCount?: number;
   badge: "soldOut" | "sale" | "new" | null;
   /** At or below the store's low-stock threshold, from the listing response. A hint from cached listing data (the product page confirms it live); never shown on a sold-out card. */
   lowStock?: boolean;
@@ -52,9 +54,19 @@ export function toCardProduct(product: Product, locale: Locale, categories: Cate
     priceIsRange: Boolean(product.listing.minActivePrice && product.listing.maxActivePrice && product.listing.minActivePrice !== product.listing.maxActivePrice),
     compareAt,
     soldOut,
+    purchasableCount: product.listing.purchasableVariantCount,
     // One badge at most, by what matters most to the decision — all from real data; no invented "best seller".
     badge: soldOut ? "soldOut" : compareAt ? "sale" : isNew ? "new" : null,
     ...(promotion ? { promotion } : {}),
     ...(!soldOut && product.listing.lowStock ? { lowStock: true } : {}),
   };
+}
+
+/**
+ * Whether a card may offer a direct "Add to cart": nothing to choose (no option axes) and exactly one purchasable
+ * variant. Anything else — several variants, an axis to pick, sold out — leads to the product page instead. The add
+ * path still re-checks live availability; this only decides which control the card shows.
+ */
+export function canAddDirectly(product: Pick<CardProduct, "soldOut" | "optionAxes" | "purchasableCount">): boolean {
+  return !product.soldOut && product.optionAxes.length === 0 && product.purchasableCount === 1;
 }

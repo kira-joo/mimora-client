@@ -14,7 +14,7 @@
   "menu": "القائمة",
   "close": "إغلاق",
   "search": "بحث",
-  "searchPlaceholder": "ابحث عن قميص، إزميل، حذاء…",
+  "searchPlaceholder": "ابحث عن الهدية المثالية…",
   "recentSearches": "عمليات بحث سابقة",
   "browseCategories": "تصفح الفئات",
   "cart": "السلة",
@@ -495,5 +495,20 @@
   "catalogExtras": {
     "inStockOnly": "المتوفر فقط",
     "inStockOnlyHint": "إخفاء المنتجات التي لا يمكن شراؤها الآن"
-  }
+  },
+  "wishlistLink": "المفضلة",
+  "chooseOptionsLong": "اختر الخيارات",
+  "deliveryLineExact": "{n, plural, one {توصيل خلال يوم} two {توصيل خلال يومين} few {توصيل خلال {days} أيام} many {توصيل خلال {days} يومًا} other {توصيل خلال {days} يوم}}",
+  "announcementRegion": "إعلان المتجر",
+  "carouselLabel": "هدايا مميزة",
+  "carouselSlide": "{n} من {total}",
+  "carouselPrev": "الشريحة السابقة",
+  "carouselNext": "الشريحة التالية",
+  "carouselPause": "إيقاف العرض مؤقتًا",
+  "carouselPlay": "تشغيل العرض",
+  "carouselGoTo": "الانتقال إلى الشريحة {n} من {total}",
+  "carouselCaption": "تسوّق {name}",
+  "giftCollections": "تسوّق حسب المناسبة",
+  "closeMenu": "إغلاق القائمة",
+  "accountLink": "حسابي"
 }

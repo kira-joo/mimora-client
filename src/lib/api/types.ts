@@ -1,7 +1,7 @@
 import type { LocalizedString } from "@kira-joo/toolkit-common";
 
 /*
- * The storefront's copy of the backend contract (store-platform-staff owns every
+ * The storefront's copy of the backend contract (mimora-staff owns every
  * shape; its `storefront.endpoints.ts` says consumers hand-maintain their own).
  * Money is a STRING on the wire and is never arithmetic here — it is only ever
  * formatted (MDS §24). Dates are ISO strings, ids hex strings.
@@ -30,7 +30,6 @@ export interface Paginated<T> {
 }
 
 // ---------------------------------------------------------------- store configuration
-export type TypographyChoice = "default" | "contemporary" | "neutral";
 
 export interface StoreProfile {
   _id: string;
@@ -56,7 +55,7 @@ export interface ResolvedFill {
 }
 
 export interface ThemeView {
-  brand: { primary: string; accent: string; radiusScale?: number; typographyChoice: TypographyChoice };
+  brand: { primary: string; accent: string; radiusScale?: number };
   theme: { defaultGround: "light" | "dark"; darkEnabled: boolean; allowVisitorChoice: boolean };
   palette: Record<"light" | "dark", Record<"primary" | "accent", ResolvedFill>>;
   grounds: { light: string; dark: string };
@@ -75,7 +74,7 @@ export interface ResolvedEntity {
   image?: ImageAsset;
 }
 
-/** store-platform-staff `ResolvedHomeSection` (content/resolve-storefront-content.ts). Unresolvable sections never arrive. */
+/** mimora-staff `ResolvedHomeSection` (content/resolve-storefront-content.ts). Unresolvable sections never arrive. */
 export type HomeSection =
   | { type: "campaignHero"; headline: Localized; subline?: Localized; action?: { label: Localized; link: ResolvedLink }; image: ImageAsset | null }
   | { type: "collectionStory"; collection: ResolvedEntity; heading?: Localized; body?: Localized }

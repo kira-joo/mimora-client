@@ -14,7 +14,7 @@
   "menu": "Menu",
   "close": "Close",
   "search": "Search",
-  "searchPlaceholder": "Search for a shirt, a chisel, boots…",
+  "searchPlaceholder": "Search for the perfect gift…",
   "recentSearches": "Recent searches",
   "browseCategories": "Browse categories",
   "cart": "Cart",
@@ -495,5 +495,20 @@
   "catalogExtras": {
     "inStockOnly": "In stock only",
     "inStockOnlyHint": "Hide products that cannot be bought right now"
-  }
+  },
+  "wishlistLink": "Wishlist",
+  "chooseOptionsLong": "Choose options",
+  "deliveryLineExact": "{n, plural, one {Delivered in {days} day} other {Delivered in {days} days}}",
+  "announcementRegion": "Store announcement",
+  "carouselLabel": "Featured gifts",
+  "carouselSlide": "{n} of {total}",
+  "carouselPrev": "Previous slide",
+  "carouselNext": "Next slide",
+  "carouselPause": "Pause slideshow",
+  "carouselPlay": "Play slideshow",
+  "carouselGoTo": "Go to slide {n} of {total}",
+  "carouselCaption": "Shop {name}",
+  "giftCollections": "Shop by occasion",
+  "closeMenu": "Close menu",
+  "accountLink": "Account"
 }

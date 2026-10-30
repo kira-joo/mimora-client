@@ -1,5 +1,6 @@
 "use client";
 
+import { Globe } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useStore } from "@/components/providers/store-context";
 import { usePathname, useRouter } from "@/i18n/navigation";
@@ -13,8 +14,11 @@ import { LOCALES, type Locale } from "@/i18n/routing";
  *
  * Offers only locales the STORE serves (profile `supportedLocales`, via the
  * store context); a store serving one language shows no switch at all.
+ *
+ * `block` is the full-width button (menu drawer, footer); `inline` is the compact
+ * globe-and-name control on the announcement band.
  */
-export function LocaleSwitch() {
+export function LocaleSwitch({ variant = "block" }: { variant?: "block" | "inline" }) {
   const locale = useLocale();
   const t = useTranslations("common");
   const router = useRouter();
@@ -27,7 +31,14 @@ export function LocaleSwitch() {
   return (
     <>
       {others.map((other: Locale) => (
-        <button key={other} type="button" lang={other} className="btn btn-secondary w-full" onClick={() => router.replace(`${pathname}${window.location.search}`, { locale: other })}>
+        <button
+          key={other}
+          type="button"
+          lang={other}
+          className={variant === "inline" ? "-my-0.5 inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-semibold text-on-band transition-colors duration-[var(--sf-duration-fast)] hover:bg-on-band/15 focus-visible:outline-on-band" : "btn btn-secondary w-full"}
+          onClick={() => router.replace(`${pathname}${window.location.search}`, { locale: other })}
+        >
+          {variant === "inline" ? <Globe className="size-4" aria-hidden="true" /> : null}
           {t("switchLanguage")}
         </button>
       ))}

@@ -1,25 +1,28 @@
-import Image from "next/image";
-import type { ReactNode } from "react";
-import { ArrowLeft, RotateCcw, Truck, Wallet } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { Reveal } from "@/components/ui/reveal";
 import { StoreImage } from "@/components/ui/store-image";
 import type { Locale } from "@/i18n/routing";
-import type { DeliveryZone, FulfilmentSettings, HomeSection, PaymentMethodView } from "@/lib/api/types";
+import type { Collection, DeliveryZone, FulfilmentSettings, HomeSection, PaymentMethodView } from "@/lib/api/types";
 import type { CardProduct } from "@/lib/catalog/card-model";
 import { localized } from "@/lib/format/numerals";
-import { storeAssurances } from "@/lib/catalog/assurances";
-import { linkHref } from "@/lib/links";
-import { HeroMotion } from "./hero-motion";
-import { ProductRail } from "./product-rail";
+import { heroSecondaryAction } from "@/lib/home/hero-actions";
+import { buildHeroSlides } from "@/lib/home/hero-slides";
 import { MOTION } from "@/lib/motion/tokens";
+import { Benefits, benefitItems } from "./benefits";
+import { CategoryTiles } from "./category-tiles";
+import { GiftBand } from "./gift-band";
+import { CampaignHero } from "./hero";
+import { ProductRail } from "./product-rail";
+import { SectionHead, ViewAll } from "./section-head";
 
 type Section<T extends HomeSection["type"]> = Extract<HomeSection, { type: T }>;
 
 /** Everything a section may need, fetched once by the page. A section with nothing to show renders nothing — no empty scaffolding. */
 export interface HomeData {
+  /** Every published section, in order — a section may take its cues from a neighbour (the hero shows the benefits and the category photographs). */
+  sections: HomeSection[];
   rails: Map<number, CardProduct[]>;
+  collections: Collection[];
   fulfilment: FulfilmentSettings | null;
   zones: DeliveryZone[];
   paymentMethods: PaymentMethodView[];
@@ -28,99 +31,47 @@ export interface HomeData {
 export async function HomeSectionView({ section, index, locale, data }: { section: HomeSection; index: number; locale: Locale; data: HomeData }) {
   switch (section.type) {
     case "campaignHero":
-      return <CampaignHero section={section} locale={locale} />;
+      return <HeroSection section={section} locale={locale} data={data} />;
     case "categoryTiles":
       return <CategoryTiles section={section} locale={locale} />;
     case "collectionStory":
       return <CollectionStory section={section} locale={locale} items={data.rails.get(index) ?? []} />;
     case "productRail":
-      return <ProductRailSection section={section} locale={locale} items={data.rails.get(index) ?? []} />;
+      return <ProductRailSection section={section} locale={locale} items={data.rails.get(index) ?? []} data={data} />;
     case "editorialBand":
-      return <EditorialBand section={section} locale={locale} />;
+      return <GiftBand section={section} collections={data.collections} locale={locale} />;
     case "assuranceStrip":
       return <AssuranceStrip locale={locale} data={data} />;
   }
 }
 
-/** The rule under a heading — the one element every section type repeats (design-system §10, §13a). */
-function SectionHead({ title, action }: { title: string; action?: ReactNode }) {
-  return (
-    <div className="mb-6 flex flex-col gap-3 lg:mb-8">
-      <div className="flex items-end justify-between gap-4">
-        <h2 className="t-title">{title}</h2>
-        {action}
-      </div>
-      <div className="rule" aria-hidden="true" />
-    </div>
-  );
+/**
+ * The hero reads its neighbours: the showcase rotates the campaign image with the
+ * category photographs, the second action leads somewhere the first does not (hero-actions.ts),
+ * and — when the store publishes an assurance strip — the strip renders inside the
+ * hero as its benefits row instead of as a section of its own.
+ */
+async function HeroSection({ section, locale, data }: { section: Section<"campaignHero">; locale: Locale; data: HomeData }) {
+  const tiles = data.sections.find((candidate): candidate is Section<"categoryTiles"> => candidate.type === "categoryTiles");
+  const band = data.sections.find((candidate): candidate is Section<"editorialBand"> => candidate.type === "editorialBand");
+  const hasStrip = data.sections.some((candidate) => candidate.type === "assuranceStrip");
+  const benefits = hasStrip ? await benefitItems(locale, data.fulfilment, data.zones, data.paymentMethods) : [];
+  const action = heroSecondaryAction(section, band, tiles);
+  const secondary = action ? { label: localized(action.name, locale), href: action.href } : null;
+  return <CampaignHero section={section} locale={locale} slides={buildHeroSlides(section, tiles, locale)} secondary={secondary} benefits={benefits} />;
 }
 
-function ViewAll({ href, label }: { href: string; label: string }) {
-  return (
-    <Link href={href} className="inline-flex min-h-11 flex-none items-center gap-1.5 text-[0.9375rem] font-semibold text-action hover:text-action-hover">
-      {label}
-      <ArrowLeft className="size-4 ltr:-scale-x-100" aria-hidden="true" />
-    </Link>
-  );
-}
-
-/** Campaign hero (§13a): full-bleed photograph, display headline + one line + ONE action on a pre-composed bottom scrim. */
-function CampaignHero({ section, locale }: { section: Section<"campaignHero">; locale: Locale }) {
-  return (
-    <section className="relative isolate overflow-hidden bg-surface-muted">
-      <HeroMotion image={section.image?.secureUrl ? <Image src={section.image.secureUrl} alt="" fill priority sizes="100vw" className="object-cover object-[center_40%]" /> : null}>
-        <div className="absolute inset-0 -z-0 bg-[linear-gradient(to_top,var(--sf-scrim-strong)_0%,var(--sf-scrim-strong)_18%,var(--sf-scrim-soft)_68%)]" aria-hidden="true" />
-        <div className="container-sf relative flex h-full flex-col justify-end pb-10 lg:pb-16">
-          <div className="flex max-w-2xl flex-col items-start gap-4 text-on-media">
-            <h1 className="t-display text-balance">{localized(section.headline, locale)}</h1>
-            {section.subline ? <p className="max-w-lg text-[1.0625rem] leading-relaxed opacity-90">{localized(section.subline, locale)}</p> : null}
-            {section.action ? (
-              <Link href={linkHref(section.action.link)} className="btn btn-primary mt-2">
-                {localized(section.action.label, locale)}
-              </Link>
-            ) : null}
-          </div>
-        </div>
-      </HeroMotion>
-    </section>
-  );
-}
-
-async function CategoryTiles({ section, locale }: { section: Section<"categoryTiles">; locale: Locale }) {
-  if (section.categories.length === 0) return null;
-  const t = await getTranslations("common");
-  return (
-    <section className="container-sf mt-[var(--sf-section)]">
-      <Reveal>
-        <SectionHead title={localized(section.heading, locale) || t("browseCategories")} />
-      </Reveal>
-      <ul className={`grid grid-cols-2 gap-3 lg:gap-5 ${section.categories.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
-        {section.categories.map((category, index) => (
-          <li key={category.slug}>
-            <Reveal delay={Math.min(index, 5) * MOTION.stagger}>
-              <Link href={`/categories/${category.slug}`} className="group relative block">
-                <StoreImage image={category.image} alt="" ratio="4 / 5" sizes="(min-width: 1024px) 25vw, 50vw" imageClassName="transition-transform duration-[var(--sf-duration-slow)] ease-standard [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.03]" />
-                <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-[linear-gradient(to_top,var(--sf-scrim-strong),var(--sf-scrim-soft))] px-4 pb-4 pt-12 font-display text-xl font-semibold text-on-media lg:text-2xl">
-                  {localized(category.name, locale)}
-                </span>
-              </Link>
-            </Reveal>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-async function ProductRailSection({ section, locale, items }: { section: Section<"productRail">; locale: Locale; items: CardProduct[] }) {
+async function ProductRailSection({ section, locale, items, data }: { section: Section<"productRail">; locale: Locale; items: CardProduct[]; data: HomeData }) {
   if (items.length === 0) return null;
   const t = await getTranslations("common");
+  const collection = section.collection ? data.collections.find((candidate) => candidate.slug === section.collection?.slug) : undefined;
   const title = localized(section.heading, locale) || (section.collection ? localized(section.collection.name, locale) : t("newest"));
+  const subline = collection?.description ? localized(collection.description, locale) : undefined;
   const href = section.collection ? `/collections/${section.collection.slug}` : "/products";
   return (
     <section className="container-sf mt-[var(--sf-section)]">
       <Reveal>
-        <SectionHead title={title} action={<ViewAll href={href} label={t("viewAll")} />} />
+        <SectionHead title={title} subline={subline} action={<ViewAll href={href} label={t("viewAll")} />} />
       </Reveal>
       <ProductRail items={items} />
     </section>
@@ -154,50 +105,14 @@ async function CollectionStory({ section, locale, items }: { section: Section<"c
   );
 }
 
-async function EditorialBand({ section, locale }: { section: Section<"editorialBand">; locale: Locale }) {
-  const t = await getTranslations("common");
-  return (
-    <section className="mt-[var(--sf-section)]">
-      <Link href={`/collections/${section.collection.slug}`} className="group relative block">
-        <StoreImage image={section.collection.image} alt="" ratio="4 / 5" sizes="100vw" className="md:aspect-[16/9]! lg:aspect-[21/9]!" />
-        <div className="absolute inset-0 flex items-end bg-[linear-gradient(to_top,var(--sf-scrim-strong),var(--sf-scrim-soft)_70%)]">
-          <div className="container-sf flex flex-col items-start gap-3 pb-10 text-on-media lg:pb-14">
-            <p className="t-title max-w-3xl text-balance">{localized(section.headline, locale)}</p>
-            <span className="inline-flex min-h-11 items-center gap-1.5 font-semibold underline-offset-4 group-hover:underline">
-              {localized(section.collection.name, locale)} — {t("shopAll")}
-              <ArrowLeft className="size-4 ltr:-scale-x-100" aria-hidden="true" />
-            </span>
-          </div>
-        </div>
-      </Link>
-    </section>
-  );
-}
-
-/** The store's assurances (lib/catalog/assurances.ts) — the same facts the product page shows beside its button. */
+/** A standalone assurance strip — only when the store has no hero to carry it. */
 async function AssuranceStrip({ locale, data }: { locale: Locale; data: HomeData }) {
-  const t = await getTranslations("common");
-  const facts = storeAssurances(locale, t, data.fulfilment, data.zones, data.paymentMethods);
-  const items = [
-    facts.delivery ? { icon: Truck, title: t("assuranceDelivery"), body: facts.delivery } : null,
-    facts.returns ? { icon: RotateCcw, title: t("assuranceReturns"), body: facts.returns } : null,
-    facts.payment ? { icon: Wallet, title: t("assurancePayment"), body: facts.payment } : null,
-  ].filter((item) => item !== null);
+  if (data.sections.some((candidate) => candidate.type === "campaignHero")) return null;
+  const items = await benefitItems(locale, data.fulfilment, data.zones, data.paymentMethods);
   if (items.length === 0) return null;
   return (
     <section className="container-sf mt-[var(--sf-section)]">
-      <div className="rule mb-8" aria-hidden="true" />
-      <ul className={`grid gap-6 ${items.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
-        {items.map(({ icon: Icon, title, body }) => (
-          <li key={title} className="flex items-start gap-4">
-            <Icon className="mt-1 size-6 flex-none text-support" aria-hidden="true" />
-            <div>
-              <h3 className="t-heading">{title}</h3>
-              <p className="text-[0.9375rem] text-ink-secondary">{body}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <Benefits items={items} className="mx-auto max-w-3xl" />
     </section>
   );
 }

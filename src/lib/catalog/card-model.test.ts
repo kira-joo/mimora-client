@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Product } from "@/lib/api/types";
-import { toCardProduct } from "./card-model";
+import { canAddDirectly, toCardProduct } from "./card-model";
 import type { PromotionBadge } from "./promotions";
 
 const product = (overrides: Partial<Product> = {}, purchasableVariantCount = 2): Product => ({
@@ -56,5 +56,24 @@ describe("toCardProduct — low-stock signal (plan #19)", () => {
     const card = toCardProduct(withListing({ lowStock: true }, 0), "en", [], NOW);
     expect(card.soldOut).toBe(true);
     expect(card.lowStock).toBeUndefined();
+  });
+});
+
+describe("canAddDirectly", () => {
+  it("is true for one purchasable variant and nothing to choose", () => {
+    expect(canAddDirectly(toCardProduct(product({}, 1), "en", [], NOW))).toBe(true);
+  });
+  it("is false when several variants are purchasable", () => {
+    expect(canAddDirectly(toCardProduct(product({}, 3), "en", [], NOW))).toBe(false);
+  });
+  it("is false when sold out", () => {
+    expect(canAddDirectly(toCardProduct(product({}, 0), "en", [], NOW))).toBe(false);
+  });
+  it("is false when there is an option axis to choose, even with one variant left", () => {
+    const axes = [{ key: "size", label: { en: "Size", ar: "المقاس" }, values: [] }] as unknown as Product["optionAxes"];
+    expect(canAddDirectly(toCardProduct(product({ optionAxes: axes }, 1), "en", [], NOW))).toBe(false);
+  });
+  it("is false for a hand-built card that does not say how many variants are purchasable", () => {
+    expect(canAddDirectly({ soldOut: false, optionAxes: [] })).toBe(false);
   });
 });

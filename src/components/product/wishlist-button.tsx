@@ -13,6 +13,8 @@ import { useWishlist, useWishlistToggle } from "@/lib/wishlist/use-wishlist";
  * ground-aware canvas surface, so it reads on light and dark photographs), and
  * `row` sits beside Add to cart from tablet up. One state, one handler.
  *
+ * `chip` is the home cards' round heart, visible at every width.
+ *
  * `labelled` is the product page's: a visible "Save to wishlist" beside the buy
  * box, always shown (card placements hide per breakpoint). Its accessible name
  * IS its visible text, so a voice-control user can say what they read.
@@ -20,7 +22,7 @@ import { useWishlist, useWishlistToggle } from "@/lib/wishlist/use-wishlist";
  * The wishlist is an account feature: a guest's tap goes to sign-in and comes
  * back here, rather than toggling something that would silently not be saved.
  */
-export function WishlistButton({ productId, productName, variant }: { productId: string; productName: string; variant: "overlay" | "row" | "labelled" }) {
+export function WishlistButton({ productId, productName, variant }: { productId: string; productName: string; variant: "overlay" | "row" | "labelled" | "chip" }) {
   const t = useTranslations("common");
   const router = useRouter();
   const pathname = usePathname();
@@ -46,12 +48,27 @@ export function WishlistButton({ productId, productName, variant }: { productId:
       </button>
     );
   }
+  if (variant === "chip") {
+    // The home cards' placement: a round chip on the photograph at every width (a 44px hit area around a 36px chip).
+    return (
+      <button type="button" onClick={onClick} aria-pressed={saved} aria-label={label} className="group/heart absolute end-1.5 top-1.5 flex size-11 items-center justify-center outline-none">
+        <span
+          className={cn(
+            "inline-flex size-9 items-center justify-center rounded-full bg-chip shadow-card transition-transform duration-[var(--sf-duration-fast)] group-hover/heart:scale-105 group-active/heart:scale-90 group-focus-visible/heart:outline-2 group-focus-visible/heart:outline-offset-2 group-focus-visible/heart:outline-focus",
+            saved ? "text-action" : "text-ink-secondary"
+          )}
+        >
+          <Heart className={cn("size-[18px]", saved && "fill-current")} aria-hidden="true" />
+        </span>
+      </button>
+    );
+  }
   if (variant === "overlay") {
     return (
       <button type="button" onClick={onClick} aria-pressed={saved} aria-label={label} className="group/heart absolute end-0 top-0 flex size-11 items-start justify-end p-1.5 outline-none md:hidden">
         <span
           className={cn(
-            "inline-flex size-8 items-center justify-center rounded-full bg-canvas/90 shadow-[0_1px_3px_rgb(0_0_0/0.18)] backdrop-blur-sm transition-transform duration-[var(--sf-duration-fast)] group-active/heart:scale-90 group-focus-visible/heart:outline-2 group-focus-visible/heart:outline-offset-2 group-focus-visible/heart:outline-focus",
+            "inline-flex size-8 items-center justify-center rounded-full bg-canvas/90 shadow-card backdrop-blur-sm transition-transform duration-[var(--sf-duration-fast)] group-active/heart:scale-90 group-focus-visible/heart:outline-2 group-focus-visible/heart:outline-offset-2 group-focus-visible/heart:outline-focus",
             saved ? "text-action" : "text-ink"
           )}
         >

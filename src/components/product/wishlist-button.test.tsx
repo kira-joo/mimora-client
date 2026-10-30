@@ -14,7 +14,7 @@ vi.mock("@/lib/wishlist/use-wishlist", () => ({
 
 import { WishlistButton } from "./wishlist-button";
 
-function mount(variant: "overlay" | "row" | "labelled") {
+function mount(variant: "overlay" | "row" | "labelled" | "chip") {
   return render(
     <NextIntlClientProvider locale="en" messages={{ common: en }}>
       <WishlistButton productId="p1" productName="Lamp" variant={variant} />
@@ -28,7 +28,7 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("WishlistButton aria-pressed", () => {
-  it.each(["overlay", "row", "labelled"] as const)("%s reflects the unsaved and saved state", (variant) => {
+  it.each(["overlay", "row", "labelled", "chip"] as const)("%s reflects the unsaved and saved state", (variant) => {
     mount(variant);
     expect(screen.getByRole("button")).toHaveAttribute("aria-pressed", "false");
     cleanup();

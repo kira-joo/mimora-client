@@ -4,7 +4,7 @@ import { brandCss, htmlThemeAttributes } from "./theme";
 
 const fill = (hex: string) => ({ hex, contrastRatio: 5, source: "derived" as const });
 const theme = (overrides: Partial<ThemeView["theme"]> = {}, primary = "#2f6e8c"): ThemeView => ({
-  brand: { primary, accent: "#4b5b43", radiusScale: 1, typographyChoice: "default" },
+  brand: { primary, accent: "#4b5b43", radiusScale: 1 },
   theme: { defaultGround: "light", darkEnabled: true, allowVisitorChoice: true, ...overrides },
   palette: { light: { primary: fill(primary), accent: fill("#4b5b43") }, dark: { primary: fill("#3985a9"), accent: fill("#9db08f") } },
   grounds: { light: "#F7F5F1", dark: "#14130F" },

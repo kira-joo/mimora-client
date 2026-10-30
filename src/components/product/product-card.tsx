@@ -2,18 +2,12 @@
 
 import Image from "next/image";
 import { Check, CircleAlert, ShoppingBag } from "lucide-react";
-import { useEffect, useRef, useState, type ElementType } from "react";
+import { useRef, useState, type ElementType } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@kira-joo/frontend-toolkit-tailwind/server";
 import { Link } from "@/i18n/navigation";
 import { Price } from "@/components/ui/price";
-import { catalogApi } from "@/lib/api/session-client";
-import { CatalogEndpoints } from "@/lib/api/session.endpoints";
-import { useCartUi } from "@/lib/cart/cart-ui";
-import { useAddToCart } from "@/lib/cart/use-cart";
-import { addToCart as addToCartEvent } from "@/lib/analytics/events";
-import { track } from "@/lib/analytics/track";
+import { useDirectAdd } from "@/lib/cart/use-direct-add";
 import type { CardProduct } from "@/lib/catalog/card-model";
 import { formatNumber } from "@/lib/format/numerals";
 import { productHref } from "@/lib/links";
@@ -57,23 +51,16 @@ export function ProductCard({ product, sizes = "(min-width: 1536px) 22vw, (min-w
   const Tag: ElementType = as;
   const locale = useLocale() as Locale;
   const t = useTranslations("common");
-  const queryClient = useQueryClient();
-  const addToCart = useAddToCart();
-  const { announceAdded } = useCartUi();
+  const { add, busy, justAdded, failed } = useDirectAdd(product);
   const [index, setIndex] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [justAdded, setJustAdded] = useState(false);
-  const [failed, setFailed] = useState(false);
   const strip = useRef<HTMLDivElement>(null);
   // While a thumbnail's smooth scroll is under way, the slides it passes are not selections.
   const target = useRef<number | null>(null);
-  const timer = useRef<number | undefined>(undefined);
-  useEffect(() => () => window.clearTimeout(timer.current), []);
 
   const images = product.images;
   const href = productHref(product.slug);
   const configurable = product.optionAxes.length > 0;
-  const busy = addToCart.isPending;
   const actionLabel = product.soldOut ? t("outOfStock") : failed ? t("addFailed") : justAdded ? t("added") : t("addToCart");
   const shortLabel = product.soldOut ? t("outOfStock") : justAdded ? "✓" : t("addShort");
   const badge = product.badge ? { soldOut: { label: t("outOfStock"), tone: "text-critical" }, sale: { label: t("badgeSale"), tone: "text-action" }, new: { label: t("badgeNew"), tone: "text-support" } }[product.badge] : null;
@@ -100,29 +87,12 @@ export function ProductCard({ product, sizes = "(min-width: 1536px) 22vw, (min-w
     if (next !== index) setIndex(next);
   }
 
-  async function onAdd() {
-    if (busy) return;
+  function onAdd() {
     if (configurable) {
-      setSheetOpen(true);
+      if (!busy) setSheetOpen(true);
       return;
     }
-    setFailed(false);
-    try {
-      // No choice to make: the one purchasable variant, from LIVE availability.
-      const variants = await queryClient.fetchQuery({ queryKey: ["availability", product.slug], queryFn: () => catalogApi().request(CatalogEndpoints.availability, { params: { slug: product.slug } }).then((response) => response.variants), staleTime: 0 });
-      const variant = variants.find((candidate) => candidate.purchasable);
-      if (!variant) throw new Error("sold out");
-      await addToCart.mutateAsync({ variantId: variant.variantId, quantity: 1 });
-      track(addToCartEvent({ productId: product.id, variantId: variant.variantId, quantity: 1 }));
-      announceAdded({ productSlug: product.slug, productName: product.name, optionLabel: "", image: images[0] ? { provider: "", publicId: "", secureUrl: images[0].src } : null, price: variant.price });
-      setJustAdded(true);
-      window.clearTimeout(timer.current);
-      timer.current = window.setTimeout(() => setJustAdded(false), 1400);
-    } catch {
-      setFailed(true);
-      window.clearTimeout(timer.current);
-      timer.current = window.setTimeout(() => setFailed(false), 2400);
-    }
+    void add();
   }
 
   return (

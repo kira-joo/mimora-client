@@ -3,7 +3,7 @@ import type { DeliveryZone, FulfilmentSettings, PaymentMethodView } from "@/lib/
 import { formatNumber } from "@/lib/format/numerals";
 
 /** The keys this helper reads — a next-intl `t` for the "common" namespace satisfies it. */
-type T = (key: "deliveryLine" | "returnsLine" | "paymentCOD" | "paymentWallet" | "paymentInstapay", values?: Record<string, string>) => string;
+type T = (key: "deliveryLine" | "deliveryLineExact" | "returnsLine" | "paymentCOD" | "paymentWallet" | "paymentInstapay", values?: Record<string, string | number>) => string;
 
 /** Payment method keys are open strings (D-6); known ones get a localized name, anything else shows as configured. */
 export function paymentMethodName(method: string, t: T): string {
@@ -22,8 +22,11 @@ export function paymentMethodName(method: string, t: T): string {
  */
 export function storeAssurances(locale: Locale, t: T, fulfilment: FulfilmentSettings | null, zones: DeliveryZone[], paymentMethods: PaymentMethodView[]) {
   const days = zones.map((zone) => zone.leadDays).filter((value) => Number.isFinite(value));
+  const min = Math.min(...days);
+  const max = Math.max(...days);
   return {
-    delivery: fulfilment?.deliveryEnabled && days.length > 0 ? t("deliveryLine", { min: formatNumber(locale, Math.min(...days)), max: formatNumber(locale, Math.max(...days)) }) : undefined,
+    // One window ("2–2 days" reads as a typo) names the single figure instead.
+    delivery: fulfilment?.deliveryEnabled && days.length > 0 ? (min === max ? t("deliveryLineExact", { n: min, days: formatNumber(locale, min) }) : t("deliveryLine", { min: formatNumber(locale, min), max: formatNumber(locale, max) })) : undefined,
     returns: fulfilment && fulfilment.returnWindowDays > 0 ? t("returnsLine", { days: formatNumber(locale, fulfilment.returnWindowDays) }) : undefined,
     payment: paymentMethods.length > 0 ? paymentMethods.map((method) => paymentMethodName(method.method, t)).join(locale === "ar" ? "، " : ", ") : undefined,
   };

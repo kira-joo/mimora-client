@@ -22,6 +22,7 @@
   --color-line-strong: var(--sf-line-strong);
   --color-action: var(--sf-action);
   --color-action-hover: var(--sf-action-hover);
+  --color-action-ink: var(--sf-action-ink);
   --color-on-action: var(--sf-on-action);
   --color-support: var(--sf-support);
   --color-on-support: var(--sf-on-support);
@@ -30,12 +31,27 @@
   --color-caution: var(--sf-caution);
   --color-critical: var(--sf-critical);
   --color-on-media: var(--sf-on-media);
+  --color-heading: var(--sf-heading);
+  --color-ornament: var(--sf-ornament);
+  --color-band: var(--sf-band);
+  --color-on-band: var(--sf-on-band);
+  --color-blush: var(--sf-blush);
+  --color-blush-soft: var(--sf-blush-soft);
+  --color-panel: var(--sf-panel);
+  --color-chip: var(--sf-chip);
+  --color-ribbon-light: var(--sf-ribbon-light);
+  --color-ribbon-mid: var(--sf-ribbon-mid);
+  --color-ribbon-dark: var(--sf-ribbon-dark);
 
   --font-display: var(--sf-font-display);
   --font-sans: var(--sf-font-sans);
   --font-mono: var(--sf-font-mono);
 
   --radius-control: var(--sf-radius-control);
+  --radius-card: var(--sf-radius-card);
+  --radius-panel: var(--sf-radius-panel);
+  --radius-pill: var(--sf-radius-pill);
+  --shadow-card: var(--sf-card-shadow);
 
   --ease-standard: var(--sf-ease-standard);
   --ease-exit: var(--sf-ease-exit);
@@ -82,15 +98,17 @@
   .t-display {
     font-family: var(--sf-font-display);
     font-size: var(--sf-text-display);
-    line-height: 1.2;
-    letter-spacing: -0.005em;
-    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    font-weight: var(--sf-display-weight);
+    color: var(--sf-heading);
   }
   .t-title {
     font-family: var(--sf-font-display);
     font-size: var(--sf-text-title);
     line-height: 1.25;
-    font-weight: 600;
+    font-weight: var(--sf-display-weight);
+    color: var(--sf-heading);
   }
   .t-heading {
     font-family: var(--sf-font-display);
@@ -123,6 +141,7 @@
   .media {
     position: relative;
     overflow: hidden;
+    border-radius: var(--sf-radius-card);
     background: var(--sf-surface-muted);
     box-shadow: var(--sf-media-shadow);
   }
@@ -131,6 +150,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
+    border-radius: inherit;
     box-shadow: var(--sf-media-ring), var(--sf-media-edge);
   }
   .media > img {
@@ -146,19 +166,20 @@
     filter: saturate(0.97) contrast(1.03);
   }
 
-  /* §10 — the rule: a thin measured line with ticks running from the reading-start edge. */
+  /* §10 — the rule: a dashed rose line, like stitching on a ribbon. Symmetric, so it needs no RTL twin. */
   .rule {
-    position: relative;
-    height: 9px;
-    border-block-end: 1px solid var(--sf-line-strong);
-    background-image: repeating-linear-gradient(to right, var(--sf-line-strong) 0 1px, transparent 1px 24px);
-    background-size: 100% 5px;
-    background-repeat: no-repeat;
-    background-position: left bottom;
+    height: 2px;
+    border-radius: var(--sf-radius-pill);
+    background-image: repeating-linear-gradient(90deg, var(--sf-ornament) 0 6px, transparent 6px 12px);
+    opacity: 0.45;
   }
-  [dir="rtl"] .rule {
-    background-image: repeating-linear-gradient(to left, var(--sf-line-strong) 0 1px, transparent 1px 24px);
-    background-position: right bottom;
+
+  /* The gingham ground: two crossed translucent stripe sets over a base — the check is drawn, never a bitmap. */
+  .gingham {
+    background-color: var(--sf-gingham-base);
+    background-image:
+      repeating-linear-gradient(0deg, var(--sf-gingham-stripe) 0 var(--sf-gingham-size), transparent var(--sf-gingham-size) calc(var(--sf-gingham-size) * 2)),
+      repeating-linear-gradient(90deg, var(--sf-gingham-stripe) 0 var(--sf-gingham-size), transparent var(--sf-gingham-size) calc(var(--sf-gingham-size) * 2));
   }
 
   .btn {
@@ -168,7 +189,7 @@
     gap: 0.5rem;
     min-height: 48px;
     padding-inline: 1.25rem;
-    border-radius: var(--sf-radius-control);
+    border-radius: var(--sf-radius-pill);
     font-weight: 600;
     font-size: 0.9375rem;
     transition:
@@ -195,6 +216,21 @@
   }
   .btn-secondary:hover {
     border-color: var(--sf-ink);
+  }
+  /* Outline on a coloured ground: the action's own hue, readable on cream and on berry. */
+  .btn-outline {
+    border: 1.5px solid var(--sf-action-ink);
+    color: var(--sf-action-ink);
+    background: transparent;
+  }
+  .btn-outline:hover {
+    background: var(--sf-blush-soft);
+  }
+
+  /* Product cards (listing and home) share one soft-cornered panel. */
+  .sf-card {
+    border-radius: var(--sf-radius-card);
+    box-shadow: var(--sf-card-shadow);
   }
 
   .field {
@@ -232,5 +268,42 @@
   *::before,
   *::after {
     transition: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------- home: hero and band */
+@layer components {
+  /* Soft blush light behind the hero copy, settling into the canvas — a gradient, so no bitmap and no ground-specific asset. */
+  .hero-glow {
+    background:
+      radial-gradient(60% 90% at 18% 38%, var(--sf-glow-a), transparent 72%),
+      linear-gradient(to bottom, var(--sf-glow-b), var(--sf-canvas));
+  }
+
+  /*
+   * The showcase photograph dissolves into the page on the side the copy sits:
+   * its top edge on a phone (copy above), its reading-start edge on desktop. The
+   * RTL twin is explicit because mask gradients take physical directions.
+   */
+  .hero-fade {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 18%);
+    mask-image: linear-gradient(to bottom, transparent 0, black 18%);
+  }
+  @media (min-width: 1024px) {
+    .hero-fade {
+      -webkit-mask-image: linear-gradient(to right, transparent 0, black 30%);
+      mask-image: linear-gradient(to right, transparent 0, black 30%);
+    }
+    [dir="rtl"] .hero-fade {
+      -webkit-mask-image: linear-gradient(to left, transparent 0, black 30%);
+      mask-image: linear-gradient(to left, transparent 0, black 30%);
+    }
+  }
+
+  /* The gingham band's title reads italic on a phone — for Latin only: Arabic has no italic, and a synthetic slant breaks Naskh. */
+  @media (max-width: 1023px) {
+    :lang(en) .band-title {
+      font-style: italic;
+    }
   }
 }

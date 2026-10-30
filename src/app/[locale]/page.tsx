@@ -48,7 +48,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     })
   );
 
-  const data: HomeData = { rails, fulfilment, zones: zones ?? [], paymentMethods: paymentMethods ?? [] };
+  const data: HomeData = { sections, rails, collections: collections ?? [], fulfilment, zones: zones ?? [], paymentMethods: paymentMethods ?? [] };
   return (
     <>
       {sections.map((section, index) => (

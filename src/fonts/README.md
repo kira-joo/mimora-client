@@ -21,11 +21,20 @@ files Google serves (all slices).
 **IBM Plex files are UNMODIFIED** (2026-10-22). IBM Plex carries the Reserved
 Font Name "Plex", and a subset is a Modified Version that may not use it. So the
 Plex files here are IBM's own release files, byte-for-byte, from the official
-npm packages (`npm pack @ibm/plex-sans@1.1.0`, `@ibm/plex-sans-arabic@1.1.0`,
-`@ibm/plex-mono@2.5.0` → `package/fonts/complete/woff2/`), under IBM's own file
+npm packages (`npm pack @ibm/plex-sans@1.1.0`, `@ibm/plex-mono@2.5.0` → `package/fonts/complete/woff2/`), under IBM's own file
 names, with IBM's license as `IBM-Plex-LICENSE.txt`. They are larger than a
 subset would be — the price of not modifying them. The modification notice
 below applies to the Noto families only.
+
+**Playfair Display is NOT subset.** It carries the Reserved Font Name "Playfair
+Display", so (like IBM Plex above) it is kept unmodified: the upstream variable
+TTFs (`ofl/playfairdisplay/PlayfairDisplay[wght].ttf` and
+`PlayfairDisplay-Italic[wght].ttf`, version 1.203, fetched 2026-10-29 from the
+official `google/fonts` repository) were only re-encoded to WOFF2 with
+`fontTools` (`font.flavor = "woff2"`) — every glyph (1103 / 1101), the full cmap
+(verified identical), the `wght` 400-900 axis and all layout tables are kept.
+It is the Latin display serif; it has no Arabic, so Arabic text in a display
+stack falls through to Noto Naskh Arabic.
 
 **How the files were made** (reproducible): take the upstream TTF, instantiate
 the variable axes (`fontTools.varLib.instancer`), subset with
@@ -36,8 +45,7 @@ cannot express a `unicode-range` split.
 |---|---|---|---|---|
 | Noto Naskh Arabic | 2.021 | https://github.com/google/fonts/tree/main/ofl/notonaskharabic (upstream https://github.com/notofonts/arabic) | Copyright 2022 The Noto Project Authors (https://github.com/notofonts/arabic) | `noto-naskh-arabic/NotoNaskhArabic-full.woff2` (variable, wght 400-700; all Google slices) |
 | Noto Sans Arabic | 2.012 | https://github.com/google/fonts/tree/main/ofl/notosansarabic (upstream https://github.com/notofonts/arabic) | Copyright 2022 The Noto Project Authors (https://github.com/notofonts/arabic) | `noto-sans-arabic/NotoSansArabic-full.woff2` (variable, wght 400-600, wdth 100; all Google slices) |
-| Noto Kufi Arabic | 2.109 | https://github.com/google/fonts/tree/main/ofl/notokufiarabic (upstream https://github.com/notofonts/arabic) | Copyright 2019-2022 Google LLC. All Rights Reserved. | `noto-kufi-arabic/NotoKufiArabic-full.woff2` (variable, wght 400-600; all Google slices) |
-| IBM Plex Sans Arabic | 1.005 (npm `@ibm/plex-sans-arabic@1.1.0`) | https://www.npmjs.com/package/@ibm/plex-sans-arabic (upstream https://github.com/IBM/plex) | Copyright 2019 IBM Corp. All rights reserved. | `ibm-plex-sans-arabic/IBMPlexSansArabic-{Regular,Medium,SemiBold}.woff2` — IBM's unmodified complete files |
+| Playfair Display | 1.203 | https://github.com/google/fonts/tree/main/ofl/playfairdisplay (upstream https://github.com/clauseggers/Playfair-Display) | Copyright 2017 The Playfair Display Project Authors (https://github.com/clauseggers/Playfair-Display), with Reserved Font Name "Playfair Display" | `playfair-display/PlayfairDisplay-VF.woff2`, `playfair-display/PlayfairDisplay-Italic-VF.woff2` (variable, wght 400-900; lossless WOFF2 repackaging, not subset) |
 | IBM Plex Mono | 2.005 (npm `@ibm/plex-mono@2.5.0`) | https://www.npmjs.com/package/@ibm/plex-mono (upstream https://github.com/IBM/plex) | Copyright 2017 IBM Corp. All rights reserved. | `ibm-plex-mono/IBMPlexMono-{Regular,Medium}.woff2` — IBM's unmodified complete files |
 
 Declared in `src/lib/theme/fonts.ts` (the only place fonts are configured; the

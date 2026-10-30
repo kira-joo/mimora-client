@@ -14,6 +14,10 @@ describe("motion tokens mirror tokens.css", () => {
     expect(MOTION.fast).toBe(ms("sf-duration-fast"));
     expect(MOTION.standard).toBe(ms("sf-duration-standard"));
     expect(MOTION.slow).toBe(ms("sf-duration-slow"));
+    expect(MOTION.crossfade).toBe(ms("sf-duration-crossfade"));
+    expect(MOTION.autoplay).toBe(ms("sf-duration-autoplay"));
+    expect(MOTION.confirm).toBe(ms("sf-duration-confirm"));
+    expect(MOTION.notice).toBe(ms("sf-duration-notice"));
   });
 
   it("easings", () => {

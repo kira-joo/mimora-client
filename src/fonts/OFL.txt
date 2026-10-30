@@ -3,16 +3,20 @@ Font software copyright notices
 
 The font files in this directory are the following Font Software, each
 licensed under the SIL Open Font License, Version 1.1 (below). The Noto files
-are web subsets; the IBM Plex files are IBM's unmodified release files:
+are web subsets; the IBM Plex files are IBM's unmodified release files; the
+Playfair Display files are the upstream variable fonts, losslessly repackaged
+as WOFF2 with no glyph or table content removed:
 
   Noto Naskh Arabic, Noto Sans Arabic
     Copyright 2022 The Noto Project Authors (https://github.com/notofonts/arabic)
-  Noto Kufi Arabic
-    Copyright 2019-2022 Google LLC. All Rights Reserved.
-    (Noto Project Authors, https://github.com/notofonts/arabic)
-  IBM Plex Sans, IBM Plex Sans Arabic, IBM Plex Mono
+  IBM Plex Sans, IBM Plex Mono
     Copyright 2017 IBM Corp. with Reserved Font Name "Plex"
     (https://github.com/IBM/plex)
+  Playfair Display
+    Copyright 2017 The Playfair Display Project Authors
+    (https://github.com/clauseggers/Playfair-Display), with Reserved Font Name
+    "Playfair Display"
+
 
 The license text is identical for every family; it is reproduced once here.
 See README.md for the per-file source, version and modification notes.

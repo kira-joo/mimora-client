@@ -21,7 +21,7 @@ import { StoreHours } from "./store-hours";
 export async function Footer({ profile, footerNavigation, legalLinks, hours }: { profile: StoreProfile; footerNavigation: ResolvedLink[]; legalLinks: ResolvedLink[]; hours: HoursView | null }) {
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("common");
-  const { phone, email, whatsApp } = profile.contact;
+  const { phone, email, whatsApp } = profile.contact ?? {}; // a freshly seeded store may carry no contact block yet
 
   return (
     <footer className="mt-[var(--sf-section)] border-t border-line bg-surface-muted">

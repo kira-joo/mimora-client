@@ -43,6 +43,5 @@ export function htmlThemeAttributes(theme: ThemeView | null): Record<string, str
   if (theme.theme.darkEnabled) attributes["data-dark"] = "enabled";
   // A store whose default ground is dark starts dark; an explicit visitor choice (ground-script.ts) still wins.
   if (theme.theme.darkEnabled && theme.theme.defaultGround === "dark") attributes["data-ground"] = "dark";
-  if (theme.brand.typographyChoice !== "default") attributes["data-typography"] = theme.brand.typographyChoice;
   return attributes;
 }

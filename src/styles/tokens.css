@@ -12,37 +12,57 @@
  * single pixel.
  */
 
-/* ---------------------------------------------------------------- light (designed primary) */
+/* ---------------------------------------------------------------- light (designed primary) — Mimora: cream and blush */
 :root {
-  --sf-canvas: #f7f5f1;
-  --sf-surface: #ffffff;
-  --sf-surface-muted: #efebe4;
-  --sf-ink: #1b1a17;
-  --sf-ink-secondary: #4a4740;
-  --sf-ink-muted: #5c574f;
-  --sf-line: #ddd8cf; /* decorative only — 1.30:1, never a meaningful boundary */
-  --sf-line-strong: #8a857a; /* control boundary, 3.37:1 */
-  --sf-action: #9f4e19;
-  --sf-action-hover: #8d4616;
+  --sf-canvas: #fdf5ef;
+  --sf-surface: #fffaf6;
+  --sf-surface-muted: #fdeee3;
+  --sf-ink: #3d1f27;
+  --sf-ink-secondary: #5a3a40;
+  --sf-ink-muted: #67474b;
+  --sf-line: #f0d5cc; /* decorative only — never a meaningful boundary */
+  --sf-line-strong: #a07780; /* control boundary, >= 3:1 on canvas and surface */
+  --sf-action: #a54f5e;
+  --sf-action-hover: #8f4352;
+  /* The action hue as TEXT or an outline on canvas, panel and blush: pulled toward the ground's ink so it holds >= 4.5:1 whatever brand colour the merchant sets. */
+  --sf-action-ink: color-mix(in oklab, var(--sf-action) 85%, black);
   --sf-on-action: #ffffff;
-  --sf-support: #4b5b43;
-  --sf-on-support: #f7f5f1;
-  --sf-focus: #9f4e19;
+  --sf-support: #7a3a4d;
+  --sf-on-support: #ffffff;
+  --sf-focus: #a54f5e;
   --sf-positive: #1f6d45;
   --sf-caution: #8a5206;
   --sf-critical: #a32218;
 
+  /* Mimora layer: headline wine, ornaments, the announcement band, gingham and the hero glow. */
+  --sf-heading: #6e1a2f;
+  --sf-ornament: #b95261;
+  --sf-band: #a04a5b;
+  --sf-on-band: #ffffff;
+  --sf-blush: #fcdbd8;
+  --sf-blush-soft: #fdeae3;
+  --sf-gingham-base: #fdeae3;
+  --sf-gingham-stripe: rgb(252 219 216 / 0.75);
+  --sf-ribbon-light: #f6a5b4;
+  --sf-ribbon-mid: #ea7f95;
+  --sf-ribbon-dark: #c9566f;
+  --sf-glow-a: #fcdbd8;
+  --sf-glow-b: #fdeae3;
+  --sf-panel: #fdeee3;
+  --sf-chip: rgb(255 250 246 / 0.88);
+
   /* Type over photography: pre-composed scrim stops, never an opacity modifier (§7). */
   --sf-on-media: #ffffff;
-  --sf-scrim-strong: rgb(20 19 15 / 0.78);
-  --sf-scrim-soft: rgb(20 19 15 / 0);
+  --sf-scrim-strong: rgb(61 31 39 / 0.78);
+  --sf-scrim-soft: rgb(61 31 39 / 0);
 
-  /* §12 — light ground contains a photograph with ring + shadow at radius 0. */
-  --sf-media-ring: inset 0 0 0 1px rgb(27 26 23 / 0.1);
-  --sf-media-shadow: 0 1px 2px rgb(27 26 23 / 0.05), 0 10px 26px -10px rgb(27 26 23 / 0.16);
+  /* §12 — a photograph contained by a soft ring and a rose-tinted shadow. */
+  --sf-media-ring: inset 0 0 0 1px rgb(110 26 47 / 0.08);
+  --sf-media-shadow: none;
   --sf-media-edge: none;
-  --sf-elevation-sheet: 0 -12px 40px -12px rgb(27 26 23 / 0.28);
-  --sf-backdrop: rgb(20 19 15 / 0.45);
+  --sf-card-shadow: 0 1px 2px rgb(110 26 47 / 0.06), 0 14px 30px -16px rgb(110 26 47 / 0.28);
+  --sf-elevation-sheet: 0 -12px 40px -12px rgb(61 31 39 / 0.3);
+  --sf-backdrop: rgb(61 31 39 / 0.45);
 
   color-scheme: light;
 }
@@ -51,29 +71,49 @@
  * D-3 cascade. The system preference applies only when the merchant offers the
  * dark ground (D-S5: off by default) — `data-dark="enabled"`. An explicit
  * visitor choice is `data-ground`, set by a synchronous script before paint.
+ * The dark ground is a deep berry/plum version of the same cream-and-blush system.
  */
 @media (prefers-color-scheme: dark) {
   :root[data-dark="enabled"]:not([data-ground="light"]) {
-    --sf-canvas: #14130f;
-    --sf-surface: #1d1b16;
-    --sf-surface-muted: #24211b;
-    --sf-ink: #f5f1e8;
-    --sf-ink-secondary: #cfc8b9;
-    --sf-ink-muted: #aea697;
-    --sf-line: #2e2a22;
-    --sf-line-strong: #837c6d;
-    --sf-action: #ea833e;
-    --sf-action-hover: #f09454;
-    --sf-on-action: #14130f;
-    --sf-support: #9db08f;
-    --sf-on-support: #14130f;
-    --sf-focus: #ea833e;
-    --sf-positive: #5bc98c;
-    --sf-caution: #e0a552;
-    --sf-critical: #f0736a;
-    --sf-media-ring: none;
+    --sf-canvas: #1f0f17;
+    --sf-surface: #2a1621;
+    --sf-surface-muted: #34202c;
+    --sf-ink: #fbe8e6;
+    --sf-ink-secondary: #e8cdd0;
+    --sf-ink-muted: #c9a9ae;
+    --sf-line: #44303b;
+    --sf-line-strong: #9a7482;
+    --sf-action: #bc7380;
+    --sf-action-hover: #c98592;
+    --sf-action-ink: color-mix(in oklab, var(--sf-action) 65%, white);
+    --sf-on-action: #2a0f1a;
+    --sf-support: #e9a9b4;
+    --sf-on-support: #2a0f1a;
+    --sf-focus: #e9a9b4;
+    --sf-positive: #6fd49b;
+    --sf-caution: #e6b266;
+    --sf-critical: #ff8a80;
+    --sf-heading: #ffd6dc;
+    --sf-ornament: #e8a0ae;
+    --sf-band: #7a3347;
+    --sf-on-band: #ffffff;
+    --sf-blush: #4a2634;
+    --sf-blush-soft: #3a1f2b;
+    --sf-gingham-base: #2f1a25;
+    --sf-gingham-stripe: rgb(94 44 62 / 0.55);
+    --sf-ribbon-light: #e48ca0;
+    --sf-ribbon-mid: #cf6b83;
+    --sf-ribbon-dark: #a94862;
+    --sf-glow-a: #3d2030;
+    --sf-glow-b: #2a1621;
+    --sf-panel: #34202c;
+    --sf-chip: rgb(42 22 33 / 0.88);
+    --sf-scrim-strong: rgb(20 8 14 / 0.8);
+    --sf-scrim-soft: rgb(20 8 14 / 0);
+    --sf-media-ring: inset 0 0 0 1px rgb(255 255 255 / 0.08);
     --sf-media-shadow: none;
-    --sf-media-edge: inset 0 0 22px 10px #14130f;
+    --sf-media-edge: none;
+    --sf-card-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 30px -16px rgb(0 0 0 / 0.6);
     --sf-elevation-sheet: 0 -12px 40px -12px rgb(0 0 0 / 0.6);
     --sf-backdrop: rgb(0 0 0 / 0.6);
     color-scheme: dark;
@@ -81,26 +121,45 @@
 }
 
 :root[data-ground="dark"] {
-  --sf-canvas: #14130f;
-  --sf-surface: #1d1b16;
-  --sf-surface-muted: #24211b;
-  --sf-ink: #f5f1e8;
-  --sf-ink-secondary: #cfc8b9;
-  --sf-ink-muted: #aea697;
-  --sf-line: #2e2a22;
-  --sf-line-strong: #837c6d;
-  --sf-action: #ea833e;
-  --sf-action-hover: #f09454;
-  --sf-on-action: #14130f;
-  --sf-support: #9db08f;
-  --sf-on-support: #14130f;
-  --sf-focus: #ea833e;
-  --sf-positive: #5bc98c;
-  --sf-caution: #e0a552;
-  --sf-critical: #f0736a;
-  --sf-media-ring: none;
+  --sf-canvas: #1f0f17;
+  --sf-surface: #2a1621;
+  --sf-surface-muted: #34202c;
+  --sf-ink: #fbe8e6;
+  --sf-ink-secondary: #e8cdd0;
+  --sf-ink-muted: #c9a9ae;
+  --sf-line: #44303b;
+  --sf-line-strong: #9a7482;
+  --sf-action: #bc7380;
+  --sf-action-hover: #c98592;
+  --sf-action-ink: color-mix(in oklab, var(--sf-action) 65%, white);
+  --sf-on-action: #2a0f1a;
+  --sf-support: #e9a9b4;
+  --sf-on-support: #2a0f1a;
+  --sf-focus: #e9a9b4;
+  --sf-positive: #6fd49b;
+  --sf-caution: #e6b266;
+  --sf-critical: #ff8a80;
+  --sf-heading: #ffd6dc;
+  --sf-ornament: #e8a0ae;
+  --sf-band: #7a3347;
+  --sf-on-band: #ffffff;
+  --sf-blush: #4a2634;
+  --sf-blush-soft: #3a1f2b;
+  --sf-gingham-base: #2f1a25;
+  --sf-gingham-stripe: rgb(94 44 62 / 0.55);
+  --sf-ribbon-light: #e48ca0;
+  --sf-ribbon-mid: #cf6b83;
+  --sf-ribbon-dark: #a94862;
+  --sf-glow-a: #3d2030;
+  --sf-glow-b: #2a1621;
+  --sf-panel: #34202c;
+  --sf-chip: rgb(42 22 33 / 0.88);
+  --sf-scrim-strong: rgb(20 8 14 / 0.8);
+  --sf-scrim-soft: rgb(20 8 14 / 0);
+  --sf-media-ring: inset 0 0 0 1px rgb(255 255 255 / 0.08);
   --sf-media-shadow: none;
-  --sf-media-edge: inset 0 0 22px 10px #14130f;
+  --sf-media-edge: none;
+  --sf-card-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 30px -16px rgb(0 0 0 / 0.6);
   --sf-elevation-sheet: 0 -12px 40px -12px rgb(0 0 0 / 0.6);
   --sf-backdrop: rgb(0 0 0 / 0.6);
   color-scheme: dark;
@@ -108,45 +167,52 @@
 
 /* ---------------------------------------------------------------- declared once, never per ground */
 :root {
-  /* §6 — families come from next/font variables; `data-typography` swaps the pairing (D-S4). */
-  --sf-font-display: var(--font-naskh), var(--font-sans-ar), serif;
+  /*
+   * §6 — families come from next/font variables (src/lib/theme/fonts.ts). Mimora's pairing is fixed: no setting swaps it.
+   * Playfair carries Latin display text; it has no Arabic, so Arabic falls through to Naskh.
+   */
+  --sf-font-display: var(--font-playfair), var(--font-naskh), var(--font-sans-ar), serif;
   --sf-font-sans: var(--font-sans-ar), system-ui, sans-serif;
   --sf-font-mono: var(--font-plex-mono), ui-monospace, monospace;
   --sf-display-scale: 1;
+  --sf-display-weight: 500;
 
-  --sf-text-display: calc(clamp(2.75rem, 1.9rem + 3.6vw, 4.5rem) * var(--sf-display-scale));
-  --sf-text-title: calc(clamp(1.875rem, 1.5rem + 1.6vw, 2.5rem) * var(--sf-display-scale));
+  --sf-text-display: calc(clamp(2.5rem, 10.1vw - 2.9rem, 6.1rem) * var(--sf-display-scale));
+  --sf-text-title: calc(clamp(1.5rem, 1.1rem + 1.6vw, 2.5rem) * var(--sf-display-scale));
   --sf-text-heading: 1.25rem;
   --sf-text-body: 1rem;
   --sf-text-body-sm: 0.875rem;
   --sf-text-label: 0.8125rem;
-  --sf-text-price: 1.375rem;
+  --sf-text-price: 1.125rem;
 
   /* §13 */
   --sf-gutter: 16px;
-  --sf-container: 1440px;
-  --sf-section: 64px;
-  --sf-radius-control: calc(2px * var(--sf-brand-radius-scale, 1));
+  --sf-container: 1376px;
+  --sf-section: 56px;
+  --sf-radius-control: calc(14px * var(--sf-brand-radius-scale, 1));
+  --sf-radius-card: calc(20px * var(--sf-brand-radius-scale, 1));
+  --sf-radius-panel: calc(28px * var(--sf-brand-radius-scale, 1));
+  --sf-radius-pill: 999px;
+  --sf-gingham-size: 14px;
 
   /* §14 */
   --sf-duration-fast: 150ms;
   --sf-duration-standard: 250ms;
   --sf-duration-slow: 400ms;
+  --sf-duration-crossfade: 700ms;
+  --sf-duration-autoplay: 6000ms;
+  /* How long an "added" confirmation and an add-failure message stay on a button before it resets. */
+  --sf-duration-confirm: 1400ms;
+  --sf-duration-notice: 2400ms;
   --sf-ease-standard: cubic-bezier(0.2, 0.7, 0.2, 1);
   --sf-ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
-  --sf-header-height: 56px;
+  --sf-header-height: 64px;
 }
 
-:root[data-typography="contemporary"] {
-  --sf-font-display: var(--font-kufi), var(--font-sans-ar), sans-serif;
-  /* §6 finding: Kufi is markedly wider — its display step is smaller so short names keep to two lines. */
-  --sf-display-scale: 0.85;
-}
-
-:root[data-typography="neutral"] {
-  --sf-font-display: var(--font-plex-ar), sans-serif;
-  --sf-font-sans: var(--font-plex-ar), system-ui, sans-serif;
+/* Naskh has no 500: Arabic display text takes its semibold so headings keep their weight. */
+:root:lang(ar) {
+  --sf-display-weight: 600;
 }
 
 @media (min-width: 768px) {
@@ -158,6 +224,7 @@
 @media (min-width: 1024px) {
   :root {
     --sf-gutter: 32px;
-    --sf-section: 112px;
+    --sf-section: 80px;
+    --sf-header-height: 84px;
   }
 }

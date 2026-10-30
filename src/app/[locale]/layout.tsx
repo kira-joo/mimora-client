@@ -107,8 +107,8 @@ export default async function LocaleLayout({ children, params }: { children: Rea
                   description: localized(profile.description, locale) || localized(profile.tagline, locale) || undefined,
                   logoUrl: profile.logo?.secureUrl,
                   imageUrl: profile.ogImage?.secureUrl,
-                  phone: profile.contact.phone,
-                  email: profile.contact.email,
+                  phone: profile.contact?.phone,
+                  email: profile.contact?.email,
                   socialUrls: profile.socialLinks.map((social) => social.url),
                   currency: profile.currency,
                 })}
@@ -116,7 +116,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
               {/* First in the tree so a first-time visitor reaches the choice in a few Tab presses, not after the whole page; the panel is fixed to the viewport foot, so its position on screen is unchanged. */}
               <CookieNotice />
               <AnnouncementBar announcement={content?.announcement ?? null} />
-              <Header storeName={localized(profile.name, locale)} logo={profile.logo ?? null} navigation={content?.headerNavigation ?? []} />
+              <Header storeName={localized(profile.name, locale)} navigation={content?.headerNavigation ?? []} />
               <main id="main">{children}</main>
               <Footer profile={profile} footerNavigation={content?.footerNavigation ?? []} legalLinks={content?.legalLinks ?? []} hours={hours} />
               <AddedSheet />

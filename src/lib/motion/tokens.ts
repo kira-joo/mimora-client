@@ -12,6 +12,14 @@ export const MOTION = {
   standard: 0.25,
   /** --sf-duration-slow */
   slow: 0.4,
+  /** --sf-duration-crossfade — the hero showcase's slide-to-slide dissolve. */
+  crossfade: 0.7,
+  /** --sf-duration-autoplay — how long a showcase slide rests before the next one (seconds). */
+  autoplay: 6,
+  /** --sf-duration-confirm — how long an "added" confirmation stays on a button (seconds). */
+  confirm: 1.4,
+  /** --sf-duration-notice — how long an add-failure message stays on a button (seconds). */
+  notice: 2.4,
   /** The §14 stagger step between revealed siblings. */
   stagger: 0.05,
   /** --sf-ease-standard */

@@ -1,5 +1,6 @@
 /*
- * The storefront's token layer — docs/design-system.md §5–§14.
+ * The storefront's token layer. (Its sections were numbered after the template's design-system document, which this
+ * repository never carried — the template is a source, never a dependency — so this file is the reference.)
  *
  * STATUS: the design system is PROPOSED, NOT APPROVED. These tokens exist so
  * the design can be judged in a browser (the design preview), not so it can
@@ -131,7 +132,6 @@
   --sf-text-title: calc(clamp(1.5rem, 1.1rem + 1.6vw, 2.5rem) * var(--sf-display-scale));
   --sf-text-heading: 1.25rem;
   --sf-text-body: 1rem;
-  --sf-text-body-sm: 0.875rem;
   --sf-text-label: 0.8125rem;
   --sf-text-price: 1.125rem;
 
@@ -160,6 +160,8 @@
   --sf-ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
   --sf-header-height: 64px;
+  /* The phone tab bar's row, before the device's safe-area inset is added beneath it. */
+  --sf-tabbar-height: 64px;
 }
 
 /*

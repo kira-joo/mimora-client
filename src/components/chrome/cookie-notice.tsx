@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { needsChoice, type ConsentChoice } from "@/lib/analytics/consent";
@@ -26,12 +27,11 @@ import { onConsentSettingsOpen, useConsent, writeConsent } from "@/lib/analytics
 export function CookieNotice() {
   const t = useTranslations("common.analytics");
   const consent = useConsent();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const [reopened, setReopened] = useState(false);
   const [saved, setSaved] = useState(false);
   const firstButton = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => setMounted(true), []);
   useEffect(
     () =>
       onConsentSettingsOpen(() => {
@@ -66,7 +66,7 @@ export function CookieNotice() {
           onKeyDown={(event) => {
             if (event.key === "Escape" && !needsChoice(consent)) setReopened(false);
           }}
-          className="fixed inset-x-3 bottom-3 z-40 border border-line bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[var(--sf-elevation-sheet)] sm:inset-x-auto sm:start-6 sm:bottom-6 sm:max-w-sm"
+          className="fixed inset-x-3 bottom-[calc(0.75rem+var(--sf-tabbar-space,0px))] z-40 border border-line bg-surface p-4 shadow-[var(--sf-elevation-sheet)] sm:inset-x-auto sm:start-6 sm:bottom-[calc(1.5rem+var(--sf-tabbar-space,0px))] sm:max-w-sm lg:pb-[max(1rem,env(safe-area-inset-bottom))]"
         >
           <p className="text-[0.875rem] text-ink-secondary">
             {t("noticeBody")}{" "}

@@ -247,13 +247,64 @@
     color: var(--sf-ink);
     font-size: 1rem; /* ≥16px — no zoom on focus in mobile Safari */
   }
+
+  /* ---- Phone home: decorative shapes for the category shortcuts, the ribbon divider and the collection cards. ----
+   * Shapes only — every colour here is a token, and everything is symmetric or logical, so RTL needs no twin. */
+
+  /* Scooped corners, the stamp/ticket outline of the concept: four quarter-masks, each cutting one corner with a circle. */
+  .sf-scoop {
+    --sf-scoop: 0.875rem;
+    mask-image:
+      radial-gradient(circle at 0 0, transparent var(--sf-scoop), black calc(var(--sf-scoop) + 0.5px)),
+      radial-gradient(circle at 100% 0, transparent var(--sf-scoop), black calc(var(--sf-scoop) + 0.5px)),
+      radial-gradient(circle at 0 100%, transparent var(--sf-scoop), black calc(var(--sf-scoop) + 0.5px)),
+      radial-gradient(circle at 100% 100%, transparent var(--sf-scoop), black calc(var(--sf-scoop) + 0.5px));
+    mask-size: 51% 51%;
+    mask-position: 0 0, 100% 0, 0 100%, 100% 100%;
+    mask-repeat: no-repeat;
+  }
+
+  /* A soft rose lift that follows a masked shape (box-shadow would be clipped by the mask, so the wrapper filters instead). */
+  .sf-lift {
+    filter: drop-shadow(0 0.25rem 0.375rem color-mix(in srgb, var(--sf-heading) 16%, transparent));
+  }
+
+  /* On the dark ground a rose glow around a scooped card reads as a halo, not a lift: the card's own fill is its edge there. */
+  :root[data-ground="dark"] .sf-lift {
+    filter: none;
+  }
+
+
+  /* The ribbon divider's bow: a soft contact shadow where the knot sits on the ribbon. Same rule as .sf-lift — none on the dark ground. */
+  .sf-bow-tie {
+    filter: drop-shadow(0 0.1875rem 0.1875rem color-mix(in srgb, var(--sf-heading) 22%, transparent));
+  }
+  :root[data-ground="dark"] .sf-bow-tie {
+    filter: none;
+  }
 }
 
-/* The phone's sticky buy bar is fixed; the page reserves its height so it never covers the end of the footer. */
-@media (max-width: 1023px) {
+/*
+ * The phone tab bar (components/chrome/mobile-tab-bar.tsx) is on every page below lg. `--sf-tabbar-space` is its
+ * footprint — its row plus the iPhone safe-area inset under it — so other bottom bars sit on top of it rather than
+ * under it, and the WhatsApp button rises above both. From lg there is no tab bar, and the space is 0. The query is in rem so it flips exactly where Tailwind's `lg:` (64rem) does.
+ */
+:root {
+  --sf-tabbar-space: 0px;
+}
+@media (max-width: 63.999rem) {
+  :root {
+    --sf-tabbar-space: calc(var(--sf-tabbar-height) + env(safe-area-inset-bottom));
+  }
+}
+
+/* The phone's sticky buy bar and cart summary are fixed above the tab bar; the page reserves their measured height
+   (`--sf-dock`, published by use-floating-dock; the tab bar's own height is reserved by its spacer) so neither ever
+   covers the end of the footer, however many lines the dock wraps to. rem, not px, so it flips exactly where `lg:` does. */
+@media (max-width: 63.999rem) {
   body:has(.sf-pdp) footer,
   body:has(.sf-cart) footer {
-    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--sf-dock, 7rem) + 1rem);
   }
 }
 

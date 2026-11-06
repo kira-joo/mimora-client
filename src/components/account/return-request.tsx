@@ -99,9 +99,14 @@ export function ReturnRequest({ orderNumber }: { orderNumber: string }) {
                     type="checkbox"
                     className="mt-1 size-5 flex-none accent-[var(--sf-action)]"
                     checked={Boolean(current)}
-                    onChange={(event) =>
-                      setChosen(({ [line.orderLineId]: _drop, ...rest }) => (event.target.checked ? { ...rest, [line.orderLineId]: { quantity: line.quantity, condition: "unused" } } : rest))
-                    }
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setChosen((current) => {
+                        const rest = { ...current };
+                        delete rest[line.orderLineId];
+                        return checked ? { ...rest, [line.orderLineId]: { quantity: line.quantity, condition: "unused" } } : rest;
+                      });
+                    }}
                   />
                   <span>
                     <span className="font-medium">{line.productName}</span>

@@ -37,9 +37,9 @@ export function Sheet({ open, onClose, side, title, closeLabel, children, footer
   const reduce = useReducedMotion();
   const [mounted, setMounted] = useState(open);
 
-  useEffect(() => {
-    if (open) setMounted(true);
-  }, [open]);
+  // Adjusted during render (not in an effect): opening mounts the dialog in the same pass. Closing keeps it mounted
+  // until the exit animation completes and `setMounted(false)` runs below.
+  if (open && !mounted) setMounted(true);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -124,7 +124,7 @@ export function Sheet({ open, onClose, side, title, closeLabel, children, footer
                 <X className="size-5" aria-hidden="true" />
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-[var(--sf-gutter)] py-5">{children}</div>
+            <div className={cn("min-h-0 flex-1 overflow-y-auto overscroll-contain px-[var(--sf-gutter)] pt-5", footer ? "pb-5" : "pb-[max(1.25rem,env(safe-area-inset-bottom))]")}>{children}</div>
             {footer ? <div className="shrink-0 border-t border-line px-[var(--sf-gutter)] py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">{footer}</div> : null}
           </motion.div>
         ) : null}

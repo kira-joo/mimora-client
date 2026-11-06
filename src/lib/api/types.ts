@@ -72,6 +72,8 @@ export interface ResolvedEntity {
   name: Localized;
   description?: Localized;
   image?: ImageAsset;
+  /** Collections only, when Staff has set one: the small picture shown where the collection is offered as a choice. */
+  icon?: ImageAsset;
 }
 
 /** mimora-staff `ResolvedHomeSection` (content/resolve-storefront-content.ts). Unresolvable sections never arrive. */
@@ -162,6 +164,8 @@ export interface Collection {
   description?: Localized;
   slug: string;
   image?: ImageAsset;
+  /** Set in Staff (Collections → Icon). Absent on collections that have none yet. */
+  icon?: ImageAsset;
   seoTitle?: Localized;
   seoDescription?: Localized;
 }

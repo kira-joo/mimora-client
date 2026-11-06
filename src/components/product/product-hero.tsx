@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { formatNumber, localized } from "@/lib/format/numerals";
 import type { ImageAsset, MatrixVariant } from "@/lib/api/types";
@@ -17,8 +17,12 @@ import { Gallery, type GalleryImage } from "./gallery";
  *
  * The gallery is re-keyed by the image set, so switching variant starts at the
  * first photograph instead of leaving the index pointing past the end.
+ *
+ * `details` (the description) follows the buy box in the same column: on desktop it fills the space beside the
+ * image instead of waiting below the fold; on a phone the column stacks under the gallery, so the order there is
+ * unchanged — photos, title and price, purchase, then the description.
  */
-export function ProductHero({ productImages, productName, ...buyBox }: { productImages: ImageAsset[]; productName: string } & Omit<BuyBoxProps, "onVariantChange" | "name">) {
+export function ProductHero({ productImages, productName, details, ...buyBox }: { productImages: ImageAsset[]; productName: string; details?: ReactNode } & Omit<BuyBoxProps, "onVariantChange" | "name">) {
   const locale = useLocale() as Locale;
   const t = useTranslations("common");
   const [selected, setSelected] = useState<MatrixVariant | undefined>(undefined);
@@ -26,7 +30,12 @@ export function ProductHero({ productImages, productName, ...buyBox }: { product
   const override = selected?.galleryOverride?.length ? selected.galleryOverride : null;
   const source = override ?? productImages;
   const images: GalleryImage[] = useMemo(
-    () => source.map((image, index) => ({ src: image.secureUrl, alt: (image.alt && localized(image.alt, locale)) || (index === 0 ? productName : t("imageOf", { i: formatNumber(locale, index + 1), n: formatNumber(locale, source.length) })) })),
+    () =>
+      source.map((image, index) => ({
+        src: image.secureUrl,
+        alt: (image.alt && localized(image.alt, locale)) || (index === 0 ? productName : t("imageOf", { i: formatNumber(locale, index + 1), n: formatNumber(locale, source.length) })),
+        ratio: image.width && image.height ? image.width / image.height : undefined,
+      })),
     [source, locale, productName, t]
   );
 
@@ -38,6 +47,7 @@ export function ProductHero({ productImages, productName, ...buyBox }: { product
       <div className="lg:col-span-5">
         <div className="lg:sticky lg:top-[calc(72px+1.5rem)]">
           <BuyBox {...buyBox} name={productName} onVariantChange={setSelected} />
+          {details}
         </div>
       </div>
     </div>

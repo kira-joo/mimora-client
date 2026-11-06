@@ -125,7 +125,8 @@ export function CartView({ mayHaveCart = true, canCheckout = true, taxMode = nul
         </aside>
       </div>
 
-      <div ref={dock} className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-canvas px-[var(--sf-gutter)] pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
+      {/* Sits on the tab bar (which clears the safe area), with room under its button for the tab bar's raised centre pill. */}
+      <div ref={dock} className="fixed inset-x-0 bottom-[var(--sf-tabbar-space)] z-20 border-t border-line bg-canvas px-[var(--sf-gutter)] pt-3 pb-[1.75rem] lg:hidden">
         <div className="mb-2 flex items-center justify-between text-[0.9375rem]">
           <span className="text-ink-secondary">{t("subtotal")}</span>
           <span className="t-price text-[1.125rem]">{price(q.subtotal)}</span>

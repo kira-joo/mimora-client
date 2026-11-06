@@ -30,7 +30,6 @@ const PAYMENT_TONE: Record<PaymentStatus, string> = { NOT_REQUIRED: "text-ink-se
  * upload; a rejected proof reopens with the staff reason (MDS §13).
  */
 export function OrderView({ orderNumber, token, justPlaced, taxMode = null }: { orderNumber: string; token?: string; justPlaced: boolean; taxMode?: TaxMode | null }) {
-  const locale = useLocale() as Locale;
   const t = useTranslations("common");
   const order = useOrder(orderNumber, token);
 

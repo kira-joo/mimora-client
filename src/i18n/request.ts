@@ -5,7 +5,7 @@ import { routing } from "./routing";
 /**
  * UI CHROME only. Store content — product names, page copy, navigation labels —
  * is `Localized` data from the backend, rendered through `resolveLocalized`
- * (src/lib/format/localized.ts). The two systems are never routed through each
+ * (@kira-joo/toolkit-common, wrapped as `localized` in src/lib/format/numerals.ts). The two systems are never routed through each
  * other (mimora-client/CLAUDE.md).
  *
  * Adding a namespace: an entry here, `ar` and `en` files under ./locales, and

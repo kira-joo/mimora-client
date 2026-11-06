@@ -32,6 +32,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   ]);
   const badges = await loadPromotionBadges(locale, profile?.currency ?? "XXX");
   const sections = content?.homeSections ?? [];
+  // eslint-disable-next-line react-hooks/purity -- an async Server Component renders once per request or revalidation, not repeatedly; `now` is one stable instant for every badge on the page.
   const now = Date.now();
 
   // One listing read per product-bearing section, in parallel.

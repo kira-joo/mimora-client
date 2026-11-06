@@ -18,6 +18,7 @@ import { alternateLanguages, resolveStoreLocales } from "@/i18n/store-locales";
 import { AppProviders } from "@/components/providers/app-providers";
 import { AnnouncementBar } from "@/components/chrome/announcement-bar";
 import { Header } from "@/components/chrome/header";
+import { MobileTabBar } from "@/components/chrome/mobile-tab-bar";
 import { Footer } from "@/components/chrome/footer";
 import { NewsletterSection } from "@/components/chrome/newsletter-section";
 import { FloatingWhatsApp } from "@/components/chrome/floating-whatsapp";
@@ -56,14 +57,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     ...(origin ? { metadataBase: new URL(origin) } : {}),
     title: { default: localized(profile.defaultSeo?.title, locale) || name, template: `%s · ${name}` },
     description: localized(profile.defaultSeo?.description, locale) || localized(profile.tagline, locale),
-    icons: profile.favicon?.secureUrl ? [{ url: profile.favicon.secureUrl }] : undefined,
+    // The favicon and app icons are static files in src/app (icon.png, apple-icon.png, favicon.ico) — Next's file
+    // convention emits their tags; the store profile's favicon field is deliberately not read here.
     openGraph: { siteName: name, locale: locale === "ar" ? "ar_EG" : "en_US", images: profile.ogImage?.secureUrl ? [profile.ogImage.secureUrl] : undefined },
     alternates: { languages: alternateLanguages("", resolveStoreLocales(profile)) },
   };
 }
 
 export async function generateViewport(): Promise<Viewport> {
-  return { width: "device-width", initialScale: 1 };
+  // `cover` lets the page reach under the iPhone home indicator, so `env(safe-area-inset-*)` reports real insets and
+  // the bottom bars (tab bar, purchase bar, cart summary) can pad themselves clear of it.
+  return { width: "device-width", initialScale: 1, viewportFit: "cover" };
 }
 
 export default async function LocaleLayout({ children, params }: { children: ReactNode; params: Promise<{ locale: string }> }) {
@@ -126,6 +130,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
               <main id="main">{children}</main>
               <NewsletterSection />
               <Footer profile={profile} footerNavigation={content?.footerNavigation ?? []} legalLinks={content?.legalLinks ?? []} categories={categories ?? []} hours={hours} />
+              <MobileTabBar categories={categories ?? []} />
               <AddedSheet />
               {whatsApp ? <FloatingWhatsApp url={whatsApp} /> : null}
             </AppProviders>

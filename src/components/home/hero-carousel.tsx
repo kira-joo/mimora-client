@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import Image, { getImageProps, type StaticImageData } from "next/image";
 import { preload } from "react-dom";
 import { useReducedMotion } from "motion/react";
@@ -9,7 +9,13 @@ import { cn } from "@kira-joo/frontend-toolkit-tailwind/server";
 import { Link } from "@/i18n/navigation";
 import { directionOf, type Locale } from "@/i18n/routing";
 import { autoplayRuns, cellShift, shortestStep, swipeStep, visibleCells, wrapIndex } from "@/lib/home/carousel";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
 import { MOTION } from "@/lib/motion/tokens";
+
+function subscribeVisibility(listener: () => void) {
+  document.addEventListener("visibilitychange", listener);
+  return () => document.removeEventListener("visibilitychange", listener);
+}
 
 /** Below Tailwind's `md` — where the frame takes the brand banner's portrait version. */
 const PHONE = "(max-width: 767px)";
@@ -64,23 +70,15 @@ export function HeroCarousel({ slides }: { slides: CarouselSlide[] }) {
   const rtl = directionOf(locale) === "rtl";
   const reduced = useReducedMotion() ?? false;
   const [position, setPosition] = useState(0);
-  const [hydrated, setHydrated] = useState(false);
+  const hydrated = useHydrated();
   const [hovering, setHovering] = useState(false);
   const [focusWithin, setFocusWithin] = useState(false);
-  const [tabHidden, setTabHidden] = useState(false);
+  const tabHidden = useSyncExternalStore(subscribeVisibility, () => document.hidden, () => false);
   const drag = useRef<{ x: number; y: number } | null>(null);
   const count = slides.length;
 
   const running = autoplayRuns({ count, reducedMotion: reduced, hovering, focusWithin, tabHidden });
   const current = wrapIndex(position, 0, count);
-
-  useEffect(() => {
-    setHydrated(true);
-    setTabHidden(document.hidden);
-    const onVisibility = () => setTabHidden(document.hidden);
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, []);
 
   // One timer per resting slide: it restarts whenever the position changes (including by hand) or a pause condition clears.
   useEffect(() => {
@@ -182,7 +180,8 @@ function ArtworkSlide({ slide, first }: { slide: CarouselSlide; first: boolean }
   const image = (
     <picture>
       {slide.mobileImage ? <source media="(min-width: 768px)" srcSet={wide.srcSet} sizes={wide.sizes} /> : null}
-      <img {...narrow} className="object-cover" />
+      {/* Decorative: the slide's link carries `aria-label`; `shared` already sets `alt: ""`, which the spread hides from the linter. */}
+      <img {...narrow} alt="" className="object-cover" />
     </picture>
   );
   if (!slide.href) return image;

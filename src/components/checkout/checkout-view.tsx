@@ -106,9 +106,11 @@ export function CheckoutView({ config, mayHaveCart = true }: { config: CheckoutC
     prefilledDefault.current = true;
     const untouched = !draft.address.governorate && !draft.address.city && !draft.address.addressLine1;
     const preferred = savedAddresses.find((candidate) => candidate.isDefault);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- applies the saved addresses (async query data) to the form once, when they first arrive; the `prefilledDefault` guard bounds it to a single run.
     if (untouched && preferred) update({ address: addressToDraft(preferred, config.zones) });
     // `update` and `draft.address` are read at the moment the addresses first arrive; later keystrokes must not re-run this.
-    }, [draft.mode, savedAddresses.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate: adding `draft.address`/`update`/`config.zones` would re-run the prefill on every keystroke.
+  }, [draft.mode, savedAddresses.length]);
 
   // Send the fulfilment choice once it can be quoted; the quote then carries the fee and window.
   const pending = fulfilmentDraft(draft, { name: draft.contact.name || customer?.name || "", phone: draft.contact.phone || customer?.phone || "" });
@@ -125,6 +127,7 @@ export function CheckoutView({ config, mayHaveCart = true }: { config: CheckoutC
     }, 500);
     return () => window.clearTimeout(timer);
     // Keyed on the draft's content, not its identity: re-send only when what would be sent changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate: `pending` is a fresh object every render and `setFulfilment` a new mutation object, so listing them would re-send the fulfilment on every render; `pendingKey` is `pending`'s content.
   }, [pendingKey, cart.data?.lines.length]);
 
   const place = useMutation({
@@ -413,7 +416,7 @@ export function CheckoutView({ config, mayHaveCart = true }: { config: CheckoutC
             )}
             <label className={cn("flex items-start gap-3 border p-4", errors.terms ? "border-critical" : "border-line-strong")}>
               {/* D-13: unticked by default, naming both documents, each opening in place. */}
-              <input type="checkbox" name="terms" checked={draft.termsAccepted} onChange={(event) => (update({ termsAccepted: event.target.checked }), errors.terms && setErrors(({ terms: _drop, ...rest }) => rest))} className="mt-1 size-5 flex-none accent-[var(--sf-action)]" aria-invalid={errors.terms ? true : undefined} aria-describedby={errors.terms ? "terms-error" : undefined} />
+              <input type="checkbox" name="terms" checked={draft.termsAccepted} onChange={(event) => (update({ termsAccepted: event.target.checked }), errors.terms && setErrors((current) => { const rest = { ...current }; delete rest.terms; return rest; }))} className="mt-1 size-5 flex-none accent-[var(--sf-action)]" aria-invalid={errors.terms ? true : undefined} aria-describedby={errors.terms ? "terms-error" : undefined} />
               <span className="text-[0.9375rem] leading-relaxed">
                 {t("termsLabel")}{" "}
                 <button type="button" onClick={() => setLegal("terms")} className="font-semibold text-action underline underline-offset-4">

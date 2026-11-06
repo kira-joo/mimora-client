@@ -1,5 +1,5 @@
 import { ResponseType, type AdapterRequest, type AdapterResponse, type RequestAdapter } from "@kira-joo/frontend-toolkit-core/server";
-import axios, { type AxiosInstance, type AxiosRequestConfig } from "axios";
+import { type AxiosInstance, type AxiosRequestConfig } from "axios";
 
 /*
  * The toolkit's `RequestAdapter` over Axios, for browser calls to this app's own

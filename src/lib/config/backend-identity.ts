@@ -82,14 +82,14 @@ async function nodeTransport(url: string): Promise<IdentityAnswer> {
   });
 }
 
-/** The test transport: routes through `globalThis.fetch`, which the unit tests stub. Installed only by the test seam. */
+/** The test transport: routes through `globalThis.fetch`, which the unit tests stub. Selected under vitest (below). */
 async function fetchTransport(url: string): Promise<IdentityAnswer> {
   const response = await globalThis.fetch(url, { cache: "no-store", headers: { Accept: "application/json" }, signal: AbortSignal.timeout(TIMEOUT_MS) });
   return { status: response.status, body: await response.text() };
 }
 
 // Under vitest (which sets VITEST) the request goes through `fetch`, which the unit tests stub; everywhere else, Node.
-let transport: (url: string) => Promise<IdentityAnswer> = process.env.VITEST ? fetchTransport : nodeTransport;
+const transport: (url: string) => Promise<IdentityAnswer> = process.env.VITEST ? fetchTransport : nodeTransport;
 
 async function askBackend(base: string, expected: string): Promise<string> {
   let answer: IdentityAnswer;
@@ -181,13 +181,4 @@ export async function announceBackendIdentity(): Promise<void> {
     }
     // A non-retryable BackendIdentityError (mismatch, STORE_ID) was already logged loudly where it arose.
   }
-}
-
-/** Test seam: forget the memo and every once-only log, and route the identity request through (stubbed) `fetch`. */
-export function resetBackendIdentityForTests() {
-  transport = fetchTransport;
-  verified = undefined;
-  inflight = undefined;
-  logged.clear();
-  warnedUnset = false;
 }

@@ -20,6 +20,8 @@
   "cart": "Cart",
   "cartCount": "Cart, {n} items",
   "shopAll": "Shop all",
+  "navHome": "Home",
+  "showSubcategories": "Show {label} categories",
   "viewAll": "View all",
   "newest": "New arrivals",
   "from": "From",

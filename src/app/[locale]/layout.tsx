@@ -122,7 +122,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
                   tag manager or analytics provider is ever added, <CookieNotice /> (components/chrome/cookie-notice.tsx) is
                   mounted here again, first in the tree, before anything is collected. */}
               <AnnouncementBar announcement={content?.announcement ?? null} />
-              <Header storeName={localized(profile.name, locale)} navigation={content?.headerNavigation ?? []} />
+              <Header storeName={localized(profile.name, locale)} navigation={content?.headerNavigation ?? []} categories={categories ?? []} />
               <main id="main">{children}</main>
               <NewsletterSection />
               <Footer profile={profile} footerNavigation={content?.footerNavigation ?? []} legalLinks={content?.legalLinks ?? []} categories={categories ?? []} hours={hours} />

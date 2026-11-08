@@ -66,5 +66,4 @@ export const StorefrontEndpoints = {
   reviews: { url: "reviews/:productId", methodType: MethodType.GET } as Endpoint<{ params: { productId: string }; query: { page?: number; limit?: number }; returnType: Paginated<PublicReview> }>,
   page: { url: "pages/:slug", methodType: MethodType.GET } as Endpoint<{ params: { slug: string }; returnType: ContentPage }>,
   activePromotions: { url: "promotions/active", methodType: MethodType.GET } as Endpoint<{ returnType: ActivePromotion[] }>,
-  search: { url: "search", methodType: MethodType.GET } as Endpoint<{ query: { q: string; page?: number; limit?: number }; returnType: Paginated<Product> }>,
 } as const;

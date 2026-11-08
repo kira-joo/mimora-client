@@ -79,6 +79,7 @@ export default async function ProductPage({ params }: Props) {
 
   const name = localized(product.name, locale);
   const table = sizeTable(guide, locale);
+  // eslint-disable-next-line react-hooks/purity -- an async Server Component renders once per request or revalidation, not repeatedly; `now` is one stable instant for every badge on the page.
   const now = Date.now();
   const badges = await loadPromotionBadges(locale, profile?.currency ?? "XXX");
   const relatedCards = selectRelated(related?.data ?? [], product.slug).map((item) => toCardProduct(item, locale, categories ?? [], now, badges));
@@ -124,30 +125,32 @@ export default async function ProductPage({ params }: Props) {
         assurances={storeAssurances(locale, t, fulfilment, zones ?? [], paymentMethods ?? [])}
         sizeGuide={table && guide ? { title: localized(guide.name, locale), description: localized(guide.description, locale) || undefined, table } : null}
         promotion={promotion}
-      />
-
-      {description || specs.length ? (
-        <div className="mt-[var(--sf-section)] grid gap-10 lg:grid-cols-12 lg:gap-12">
-          {description ? (
-            <section className="lg:col-span-7">
+        details={
+          // Beside the image on desktop (filling the column under the purchase controls); on a phone the same place it
+          // always had — straight after the purchase controls — so the phone flow is unchanged.
+          description ? (
+            <section className="mt-[var(--sf-section)] lg:mt-8 lg:border-t lg:border-line lg:pt-6">
               <h2 className="t-heading mb-3">{t("description")}</h2>
               <p className="max-w-[65ch] text-[1.0625rem] leading-[1.8] text-ink-secondary">{description}</p>
             </section>
-          ) : null}
-          {specs.length > 0 ? (
-            <section className="lg:col-span-5">
-              <h2 className="t-heading mb-3">{t("specifications")}</h2>
-              <div className="rule" aria-hidden="true" />
-              <dl className="divide-y divide-line">
-                {specs.map((row) => (
-                  <div key={row.key} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 py-3">
-                    <dt className="text-[0.9375rem] text-ink-secondary">{row.label}</dt>
-                    <dd className="tabular text-[0.9375rem] font-medium">{row.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          ) : null}
+          ) : null
+        }
+      />
+
+      {specs.length > 0 ? (
+        <div className="mt-[var(--sf-section)] grid gap-10 lg:grid-cols-12 lg:gap-12">
+          <section className="lg:col-span-7">
+            <h2 className="t-heading mb-3">{t("specifications")}</h2>
+            <div className="rule" aria-hidden="true" />
+            <dl className="divide-y divide-line">
+              {specs.map((row) => (
+                <div key={row.key} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 py-3">
+                  <dt className="text-[0.9375rem] text-ink-secondary">{row.label}</dt>
+                  <dd className="tabular text-[0.9375rem] font-medium">{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
         </div>
       ) : null}
 

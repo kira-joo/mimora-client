@@ -1,21 +1,22 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ChevronDown, ChevronLeft, Heart, Menu, Search, ShoppingBag, User } from "lucide-react";
+import { Heart, Menu, Search, ShoppingBag, User } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@kira-joo/frontend-toolkit-tailwind/server";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { Sheet } from "@/components/ui/sheet";
 import { cartCount, useCart } from "@/lib/cart/use-cart";
 import { formatNumber } from "@/lib/format/numerals";
-import { headerLinks, isCurrentLink, topLevelCategories, type HeaderLink } from "@/lib/chrome/header-links";
+import { headerLinks, isCurrentLink, topLevelCategories } from "@/lib/chrome/header-links";
 import { wordmark } from "@/lib/theme/brand-assets";
 import type { Category, ResolvedLink } from "@/lib/api/types";
 import type { Locale } from "@/i18n/routing";
 import { SearchSheet } from "./search-sheet";
 import { LocaleSwitch } from "./locale-switch";
 import { GroundSwitch } from "./ground-switch";
+import { MenuItem } from "./menu-item";
 import { NavDropdown } from "./nav-dropdown";
 
 interface HeaderProps {
@@ -38,10 +39,12 @@ const NAV_LINK_CURRENT = "text-heading underline decoration-ornament decoration-
  * cart. The menu needs the whole row: measured on one line it is ~740–830px, which does not
  * fit below xl, and beside it a search field would be crushed to nothing below 2xl — so the
  * field is a real input from 2xl, and between xl and 2xl the search icon opens the sheet.
- * Below xl: menu at the reading start, the wordmark centred, search / wishlist / cart (and
- * from lg the ground and account) at the reading end; the menu is a drawer holding the same
- * navigation (sub-categories as an expandable row), the account link and the language and
- * ground choices.
+ * Below xl: menu at the reading start, the wordmark centred, and at the reading end search and
+ * cart (from lg also the ground, account and wishlist). The wordmark sits between two equal
+ * `minmax(0, 1fr)` columns, so it is centred on the viewport whatever either side holds. On a
+ * phone (below lg) search is a field-shaped button and account / wishlist live in the bottom
+ * tab bar (mobile-tab-bar.tsx) instead. The menu is a drawer holding the same navigation
+ * (sub-categories as an expandable row), the account link and the language and ground choices.
  */
 export function Header({ storeName, navigation, categories }: HeaderProps) {
   const locale = useLocale() as Locale;
@@ -67,7 +70,7 @@ export function Header({ storeName, navigation, categories }: HeaderProps) {
 
   return (
     <header className={cn("sticky top-0 z-30 bg-canvas transition-[border-color,box-shadow] duration-[var(--sf-duration-fast)]", scrolled ? "border-b border-line shadow-card" : "border-b border-transparent")}>
-      <div className="container-sf grid h-[var(--sf-header-height)] grid-cols-[1fr_auto_1fr] items-center gap-2 xl:flex xl:gap-6">
+      <div className="container-sf grid h-[var(--sf-header-height)] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 xl:flex xl:gap-6">
         <div className="flex items-center xl:hidden">
           <button type="button" onClick={() => setMenuOpen(true)} className={cn(ICON_BUTTON, "-ms-2.5")} aria-label={t("menu")} aria-haspopup="dialog">
             <Menu className="size-6" aria-hidden="true" />
@@ -112,15 +115,26 @@ export function Header({ storeName, navigation, categories }: HeaderProps) {
           </label>
         </form>
 
-        <div className="flex items-center justify-end xl:ms-auto 2xl:ms-0">
-          <button type="button" onClick={() => setSearchOpen(true)} className={cn(ICON_BUTTON, "2xl:hidden")} aria-label={t("search")} aria-haspopup="dialog">
+        <div className="flex min-w-0 items-center justify-end xl:ms-auto 2xl:ms-0">
+          {/* Phone: search is a field-shaped button that opens the search sheet; it takes whatever the column leaves
+              (76px at 375, 104px at 430 — the centred wordmark fixes the rest). It carries the short "Search" label,
+              never the placeholder sentence, and only while the pill is wide enough to show the whole word (a
+              container query on the pill's own width; Arabic's word is the shorter): a word cut off reads as broken,
+              so a narrower pill is the icon alone, centred. The name is on the button either way. */}
+          <button type="button" onClick={() => setSearchOpen(true)} aria-haspopup="dialog" aria-label={t("search")} className="@container flex min-h-11 min-w-0 flex-1 rounded-full bg-surface-muted px-3 text-[0.875rem] text-ink-muted transition-colors duration-[var(--sf-duration-fast)] hover:bg-blush-soft lg:hidden">
+            <span className="flex w-full items-center justify-center gap-1.5 rtl:@[3rem]:justify-start ltr:@[4.75rem]:justify-start">
+              <Search className="size-[18px] flex-none text-ink" aria-hidden="true" />
+              <span className="hidden whitespace-nowrap rtl:@[3rem]:inline ltr:@[4.75rem]:inline">{t("search")}</span>
+            </span>
+          </button>
+          <button type="button" onClick={() => setSearchOpen(true)} className={cn(ICON_BUTTON, "hidden lg:inline-flex 2xl:hidden")} aria-label={t("search")} aria-haspopup="dialog">
             <Search className="size-[22px]" aria-hidden="true" />
           </button>
           <GroundSwitch variant="toggle" className={cn(ICON_BUTTON, "hidden lg:inline-flex")} />
           <Link href="/account" className={cn(ICON_BUTTON, "hidden lg:inline-flex")} aria-label={t("account")}>
             <User className="size-[22px]" aria-hidden="true" />
           </Link>
-          <Link href="/account/wishlist" className={ICON_BUTTON} aria-label={t("wishlistLink")}>
+          <Link href="/account/wishlist" className={cn(ICON_BUTTON, "hidden lg:inline-flex")} aria-label={t("wishlistLink")}>
             <Heart className="size-[22px]" aria-hidden="true" />
           </Link>
           <Link href="/cart" className={cn(ICON_BUTTON, "relative -me-2.5 xl:me-0")} aria-label={t("cartCount", { n: formatNumber(locale, count) })}>
@@ -150,58 +164,5 @@ export function Header({ storeName, navigation, categories }: HeaderProps) {
 
       <SearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} shortcuts={topLevelCategories(categories).map((category) => ({ kind: "category", slug: category.slug, label: category.name }))} />
     </header>
-  );
-}
-
-const MENU_ROW = "flex min-h-14 items-center justify-between font-display text-lg text-ink";
-
-/**
- * One drawer row. A link with sub-categories splits into the link itself and a disclosure button that reveals them
- * inline beneath it (an accordion, like the footer's groups on a phone); the sub-links are always rendered, `hidden`
- * when closed, so nothing waits on interaction to exist.
- */
-function MenuItem({ link, onNavigate }: { link: HeaderLink; onNavigate(): void }) {
-  const t = useTranslations("common");
-  const [open, setOpen] = useState(false);
-  const id = useId();
-
-  if (link.children.length === 0) {
-    return (
-      <li className="border-b border-line">
-        <Link href={link.href} onClick={onNavigate} className={MENU_ROW}>
-          {link.label}
-          <ChevronLeft className="size-4 text-ink-muted ltr:-scale-x-100" aria-hidden="true" />
-        </Link>
-      </li>
-    );
-  }
-
-  return (
-    <li className="border-b border-line">
-      <div className="flex items-center">
-        <Link href={link.href} onClick={onNavigate} className={cn(MENU_ROW, "flex-1")}>
-          {link.label}
-        </Link>
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-controls={id}
-          aria-label={t("showSubcategories", { label: link.label })}
-          onClick={() => setOpen((value) => !value)}
-          className="-me-3 inline-flex size-14 flex-none items-center justify-center text-ink-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-        >
-          <ChevronDown className={cn("size-5 transition-transform duration-[var(--sf-duration-fast)] ease-standard motion-reduce:transition-none", open && "rotate-180 text-ornament")} aria-hidden="true" />
-        </button>
-      </div>
-      <ul id={id} hidden={!open} className="pb-3 ps-4">
-        {link.children.map((child) => (
-          <li key={child.key}>
-            <Link href={child.href} onClick={onNavigate} className="flex min-h-12 items-center border-s-2 border-line ps-4 text-base text-ink-secondary transition-colors duration-[var(--sf-duration-fast)] hover:border-ornament hover:text-heading">
-              {child.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </li>
   );
 }

@@ -205,9 +205,12 @@ function FilterSheet({ open, onClose, state, facets, scale, currency, inStockCou
   const [priceInvalid, setPriceInvalid] = useState(false);
   const count = useDraftCount(open, draft, state, total);
 
-  useEffect(() => {
+  // Opening the sheet, or the applied state changing while it is open, restarts the draft from the applied state — adjusted during render, not in an effect.
+  const [syncedWith, setSyncedWith] = useState({ open, state });
+  if (syncedWith.open !== open || syncedWith.state !== state) {
+    setSyncedWith({ open, state });
     if (open) setDraft(state);
-  }, [open, state]);
+  }
 
   return (
     <Sheet

@@ -87,6 +87,7 @@ export function BuyBox({ productId, slug, name, optionAxes, initialVariants, rat
   useEffect(() => {
     onVariantChange?.(variant);
     // Keyed on the id: the live matrix replacing the cached one must not re-announce an unchanged selection.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate: `variant` is a new object whenever the live matrix refreshes and `onVariantChange` is the parent's callback; listing either re-announces an unchanged selection.
   }, [selectedId]);
   const nothingPurchasable = variants.length > 0 && !variants.some((candidate) => candidate.purchasable);
 
@@ -238,12 +239,13 @@ export function BuyBox({ productId, slug, name, optionAxes, initialVariants, rat
         ) : null}
       </div>
 
-      {/* design-system §13b sticky bar: phone only, clears the safe area, carries the resolved price and the button. */}
+      {/* design-system §13b sticky bar: phone only, sits on the tab bar (which clears the safe area) with room under its
+          button for the tab bar's raised centre pill; carries the resolved price and the button. */}
       <AnimatePresence>
         {!buttonVisible ? (
           <motion.div
             ref={dock}
-            className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-canvas px-[var(--sf-gutter)] pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-[var(--sf-elevation-sheet)] lg:hidden"
+            className="fixed inset-x-0 bottom-[var(--sf-tabbar-space)] z-20 border-t border-line bg-canvas px-[var(--sf-gutter)] pt-2.5 pb-[1.625rem] shadow-[var(--sf-elevation-sheet)] lg:hidden"
             initial={reduce ? { opacity: 0 } : { y: "100%" }}
             animate={reduce ? { opacity: 1 } : { y: 0 }}
             exit={reduce ? { opacity: 0 } : { y: "100%" }}

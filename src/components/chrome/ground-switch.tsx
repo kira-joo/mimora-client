@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { Moon, Sun } from "lucide-react";
 import { useStore } from "@/components/providers/store-context";
@@ -13,6 +13,15 @@ function currentGround(): Ground {
   return document.documentElement.getAttribute("data-ground") === "dark" ? "dark" : "light";
 }
 
+const groundListeners = new Set<() => void>();
+
+function subscribeGround(listener: () => void) {
+  groundListeners.add(listener);
+  return () => {
+    groundListeners.delete(listener);
+  };
+}
+
 /** Applies a choice and remembers it, so it survives a reload and every navigation. The flip is not animated (MDS §23). */
 function applyGround(value: Ground) {
   document.documentElement.setAttribute("data-ground", value);
@@ -21,12 +30,13 @@ function applyGround(value: Ground) {
   } catch {
     /* storage blocked — applies to this page only */
   }
+  groundListeners.forEach((listener) => listener());
 }
 
+/** The server and the hydration pass render "light"; the real ground (set before paint) is read right after, as an external-store snapshot. */
 function useGround() {
-  const [ground, setGround] = useState<Ground>("light");
-  useEffect(() => setGround(currentGround()), []);
-  return [ground, (value: Ground) => { applyGround(value); setGround(value); }] as const;
+  const ground = useSyncExternalStore(subscribeGround, currentGround, (): Ground => "light");
+  return [ground, applyGround] as const;
 }
 
 /**

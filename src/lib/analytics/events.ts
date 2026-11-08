@@ -34,8 +34,6 @@ export type AnalyticsEvent =
   | { name: "login"; params: { method: "phone" } }
   | { name: "search"; params: { search_term?: string; result_count?: number } };
 
-export type AnalyticsEventName = AnalyticsEvent["name"];
-
 /** A list event reports at most this many items: enough to learn what was shown, never a page of the whole catalog. */
 export const MAX_LIST_ITEMS = 20;
 export const MAX_SEARCH_TERM_LENGTH = 80;

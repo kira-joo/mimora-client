@@ -11,6 +11,7 @@ import { CategoryTiles } from "./category-tiles";
 import { GiftBand } from "./gift-band";
 import { CampaignHero } from "./hero";
 import { ProductRail } from "./product-rail";
+import { RibbonDivider } from "./ribbon-divider";
 import { SectionHead, ViewAll } from "./section-head";
 
 type Section<T extends HomeSection["type"]> = Extract<HomeSection, { type: T }>;
@@ -35,7 +36,7 @@ export async function HomeSectionView({ section, index, locale, data }: { sectio
     case "collectionStory":
       return <CollectionStory section={section} locale={locale} items={data.rails.get(index) ?? []} />;
     case "productRail":
-      return <ProductRailSection section={section} locale={locale} items={data.rails.get(index) ?? []} data={data} />;
+      return <ProductRailSection section={section} locale={locale} items={data.rails.get(index) ?? []} data={data} divided={data.sections.findIndex((candidate) => candidate.type === "productRail") === index} />;
     case "editorialBand":
       return <GiftBand section={section} collections={data.collections} locale={locale} />;
     case "assuranceStrip":
@@ -55,7 +56,8 @@ async function HeroSection({ locale, data }: { locale: Locale; data: HomeData })
   return <CampaignHero locale={locale} collectionSlugs={data.collections.map((collection) => collection.slug)} benefits={benefits} />;
 }
 
-async function ProductRailSection({ section, locale, items, data }: { section: Section<"productRail">; locale: Locale; items: CardProduct[]; data: HomeData }) {
+/** `divided`: the page's first rail opens with the phone ribbon divider (once per page — it is a flourish, not a separator for every section). */
+async function ProductRailSection({ section, locale, items, data, divided }: { section: Section<"productRail">; locale: Locale; items: CardProduct[]; data: HomeData; divided: boolean }) {
   if (items.length === 0) return null;
   const t = await getTranslations("common");
   const collection = section.collection ? data.collections.find((candidate) => candidate.slug === section.collection?.slug) : undefined;
@@ -63,12 +65,15 @@ async function ProductRailSection({ section, locale, items, data }: { section: S
   const subline = collection?.description ? localized(collection.description, locale) : undefined;
   const href = section.collection ? `/collections/${section.collection.slug}` : "/products";
   return (
-    <section className="container-sf mt-[var(--sf-section)]">
-      <Reveal>
-        <SectionHead title={title} subline={subline} action={<ViewAll href={href} label={t("viewAll")} />} />
-      </Reveal>
-      <ProductRail items={items} />
-    </section>
+    <>
+      {divided ? <RibbonDivider className="mt-6" /> : null}
+      <section className={divided ? "container-sf mt-[var(--sf-section)] max-lg:mt-1" : "container-sf mt-[var(--sf-section)]"}>
+        <Reveal>
+          <SectionHead title={title} subline={subline} action={<ViewAll href={href} label={t("viewAll")} />} />
+        </Reveal>
+        <ProductRail items={items} />
+      </section>
+    </>
   );
 }
 

@@ -62,7 +62,6 @@ export const listAllProducts = cache(() =>
     onTruncated: (totalPages, maxPages) => console.error(`[catalog] product walk stopped at ${maxPages} of ${totalPages} pages — the sitemap and prebuilt product pages cover only the first ${maxPages * MAX_PAGE_SIZE} products.`),
   })
 );
-export const searchProducts = cache((q: string, page = 1, limit = 24) => storefrontApi().request(E.search, { query: { q, page, limit }, ...tagged([CacheTag.PRODUCTS]) }));
 export const getProductDetail = cache((slug: string) => nullableOnNotFound(() => storefrontApi().request(E.productDetail, { params: { slug }, ...tagged([CacheTag.PRODUCTS]) })));
 export const getFacets = cache((scope: { categoryId?: string; collectionId?: string; search?: string } = {}) =>
   storefrontApi().request(E.facets, { query: Object.fromEntries(Object.entries(scope).filter(([, value]) => value)), ...tagged([CacheTag.PRODUCTS, CacheTag.CATEGORIES]) })

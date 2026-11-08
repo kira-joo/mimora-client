@@ -20,14 +20,6 @@ export function useSignIn() {
   });
 }
 
-export function useSignUp() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (body: { phone: string; password: string; name: string; email?: string }) => sessionApi().request(SessionEndpoints.signup, { body }),
-    onSuccess: () => queryClient.invalidateQueries(),
-  });
-}
-
 /** Logout is a request, not a local state change — the client cannot clear an httpOnly cookie (MDS §7). */
 export function useSignOut() {
   const queryClient = useQueryClient();

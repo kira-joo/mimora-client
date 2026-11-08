@@ -85,10 +85,10 @@ describe("CookieNotice", () => {
       <NextIntlClientProvider locale="en" messages={{ common: en }}>
         <CookieNotice />
         <header>
-          <a href="/">Home</a>
+          <a href="#top">Home</a>
         </header>
         <main id="main">
-          <a href="/p">Product</a>
+          <a href="#product">Product</a>
         </main>
       </NextIntlClientProvider>
     );

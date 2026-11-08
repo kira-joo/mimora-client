@@ -32,7 +32,6 @@ export interface HoursView {
 /** Which weekday a week starts on in each locale — presentation only (Egypt starts on Saturday). */
 const WEEK_STARTS_ON: Record<Locale, number> = { ar: 6, en: 0 };
 const TIME = /^(\d{1,2}):(\d{2})$/;
-const SUNDAY = "2023-01-01"; // a known Sunday, to name weekdays from
 
 /** The store-zone calendar date ("2026-10-23") and weekday (0 = Sunday) of an instant. */
 export function zonedToday(now: Date, timeZone: string): { date: string; weekday: number } {

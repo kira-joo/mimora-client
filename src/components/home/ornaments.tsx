@@ -42,15 +42,6 @@ export function Bow({ className, ...rest }: Props) {
   );
 }
 
-/** A curling ribbon doodle used as a section flourish. */
-export function Squiggle({ className, ...rest }: Props) {
-  return (
-    <svg viewBox="0 0 120 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" focusable="false" className={className} {...rest}>
-      <path d="M3 14c8-12 14-12 20 0s12 12 20 0 14-12 20 0 12 12 20 0 14-12 20 0 12 12 14 2" />
-    </svg>
-  );
-}
-
 /** A four-point sparkle. */
 export function Sparkle({ className, ...rest }: Props) {
   return (

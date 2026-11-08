@@ -115,8 +115,17 @@ export function PriceRange({ min, max, scale, currency, onChange, onInvalid }: P
   const id = useId();
   const [minText, setMinText] = useState(min ?? "");
   const [maxText, setMaxText] = useState(max ?? "");
-  useEffect(() => setMinText(min ?? ""), [min]);
-  useEffect(() => setMaxText(max ?? ""), [max]);
+  // A bound changed from outside (slider, reset, new URL) replaces the typed text — adjusted during render, not in an effect.
+  const [syncedMin, setSyncedMin] = useState(min);
+  if (min !== syncedMin) {
+    setSyncedMin(min);
+    setMinText(min ?? "");
+  }
+  const [syncedMax, setSyncedMax] = useState(max);
+  if (max !== syncedMax) {
+    setSyncedMax(max);
+    setMaxText(max ?? "");
+  }
   const problem = priceProblem(minText, maxText);
   useEffect(() => {
     onInvalid?.(problem !== null);

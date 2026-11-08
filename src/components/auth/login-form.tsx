@@ -31,6 +31,7 @@ export function LoginForm() {
   // first render is a hydration mismatch.
   useEffect(() => {
     const handedOver = takeSignupPhone();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads a consume-once, browser-only value (sessionStorage) after hydration; it cannot be in the initial state without a hydration mismatch.
     if (handedOver) setPhone((current) => current || handedOver);
   }, []);
   const [password, setPassword] = useState("");

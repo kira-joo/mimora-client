@@ -45,6 +45,9 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+/** The social-preview image: the site icon itself (src/app/icon.png, served by Next at /icon.png). */
+const SHARE_IMAGE = { url: "/icon.png", size: 512 } as const;
+
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
@@ -59,7 +62,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     description: localized(profile.defaultSeo?.description, locale) || localized(profile.tagline, locale),
     // The favicon and app icons are static files in src/app (icon.png, apple-icon.png, favicon.ico) — Next's file
     // convention emits their tags; the store profile's favicon field is deliberately not read here.
-    openGraph: { siteName: name, locale: locale === "ar" ? "ar_EG" : "en_US", images: profile.ogImage?.secureUrl ? [profile.ogImage.secureUrl] : undefined },
+    // Link previews (WhatsApp and every other Open Graph reader) show the Mimora logo — the same file the site serves
+    // as its icon (src/app/icon.png, 512×512 PNG, ~255 KB) — on every page; no page overrides it with a product or
+    // promotional image. The path is made absolute by `metadataBase` (SITE_URL) above.
+    openGraph: { siteName: name, locale: locale === "ar" ? "ar_EG" : "en_US", images: [{ url: SHARE_IMAGE.url, width: SHARE_IMAGE.size, height: SHARE_IMAGE.size, type: "image/png", alt: name }] },
+    twitter: { card: "summary", images: [SHARE_IMAGE.url] },
     alternates: { languages: alternateLanguages("", resolveStoreLocales(profile)) },
   };
 }

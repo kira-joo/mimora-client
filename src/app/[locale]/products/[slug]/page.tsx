@@ -44,12 +44,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const detail = await orNull(() => getProductDetail(slug), "product (metadata)");
   if (!detail) return {};
   const { product } = detail;
-  const image = product.images[0]?.secureUrl;
+  // No `openGraph` here: a page-level `openGraph` would replace the layout's, and link previews use the Mimora logo
+  // on every page rather than a product image.
   return {
     title: localized(product.seoTitle, locale) || localized(product.name, locale),
     description: localized(product.seoDescription, locale) || localized(product.description, locale).slice(0, 160),
     alternates: { canonical: `/${locale}/products/${slug}`, languages: await storeAlternates(`/products/${slug}`) },
-    openGraph: image ? { images: [image] } : undefined,
   };
 }
 

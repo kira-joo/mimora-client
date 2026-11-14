@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { useEffect, useRef, useState } from "react";
 import { Check, Minus, Plus, RotateCcw, Ruler, Star, Truck, Wallet } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -41,6 +43,8 @@ export interface BuyBoxProps {
   sizeGuide: { title: string; description?: string; table: SizeTable } | null;
   /** The automatic promotion this product falls under — words only; the cart's quote prices it. */
   promotion?: ProductPromotion | null;
+  /** The other colours/designs of this item (separate products), rendered by the page; null when there are none. */
+  linked?: ReactNode;
   /** The selected variant (undefined until the selection resolves one) — the gallery follows it. */
   onVariantChange?(variant: MatrixVariant | undefined): void;
 }
@@ -54,7 +58,7 @@ export interface BuyBoxProps {
  * the no-store one replaces it, and low-stock text appears only from live
  * data. Add-to-cart re-validates on the server regardless (MDS §10.3).
  */
-export function BuyBox({ productId, slug, name, optionAxes, initialVariants, rating, image, assurances, sizeGuide, promotion, onVariantChange }: BuyBoxProps) {
+export function BuyBox({ productId, slug, name, optionAxes, initialVariants, rating, image, assurances, sizeGuide, promotion, linked, onVariantChange }: BuyBoxProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations("common");
   const currency = useCurrency();
@@ -184,6 +188,8 @@ export function BuyBox({ productId, slug, name, optionAxes, initialVariants, rat
         {pack ? <p className="text-[0.9375rem] text-ink-secondary">{pack.kind === "pack" ? t("packOf", { n: formatNumber(locale, pack.units) }) : t("boxOf", { n: formatNumber(locale, pack.units) })}</p> : null}
         {promotion ? <PromotionNote promotion={promotion} size="page" /> : null}
       </div>
+
+      {linked ?? null}
 
       {optionAxes.length > 0 ? (
         <div className="flex flex-col gap-3">

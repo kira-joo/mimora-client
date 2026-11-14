@@ -5,6 +5,8 @@ import { isLocale, routing, type Locale } from "@/i18n/routing";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ProductHero } from "@/components/product/product-hero";
+import { LinkedProducts } from "@/components/product/linked-products";
+import { IncludedProducts } from "@/components/product/included-products";
 import { ProductCard } from "@/components/product/product-card";
 import { Reviews } from "@/components/product/reviews";
 import { storeAssurances } from "@/lib/catalog/assurances";
@@ -18,7 +20,7 @@ import { siteOrigin } from "@/lib/config/site-origin";
 import { absoluteUrl, breadcrumbListJsonLd, productJsonLd } from "@/lib/seo/structured-data";
 import { sizeTable } from "@/lib/catalog/size-guide";
 import { storeAlternates } from "@/lib/seo/alternates";
-import { localized } from "@/lib/format/numerals";
+import { formatNumber, localized } from "@/lib/format/numerals";
 import { storeTimeZone } from "@/lib/config/startup-check";
 
 // = CATALOG_REVALIDATE_SECONDS; segment config must be a literal.
@@ -64,6 +66,16 @@ export default async function ProductPage({ params }: Props) {
   const detail = await getProductDetail(slug);
   if (!detail) notFound();
   const { product, variants } = detail;
+  // A product group: the other colours/designs, each its own product. Null (no switcher) when there are none.
+  const linkedTiles = (detail.linkedProducts?.items ?? []).map((item) => ({ slug: item.slug, label: localized(item.label, locale), name: localized(item.name, locale), image: item.image, current: item.current }));
+  // A box's contents, resolved live from each included product.
+  const includedCards = (detail.includedProducts ?? []).map((item) => ({
+    slug: item.slug,
+    name: localized(item.name, locale),
+    quantity: item.quantity > 1 ? t("includedQuantity", { n: formatNumber(locale, item.quantity) }) : undefined,
+    images: item.images,
+    imageLabels: item.images.map((_, index) => t("includedImage", { i: formatNumber(locale, index + 1), n: formatNumber(locale, item.images.length), name: localized(item.name, locale) })),
+  }));
 
   const [categories, brands, profile, fulfilment, zones, paymentMethods, reviews, guide, related] = await Promise.all([
     orNull(getCategories, "categories"),
@@ -125,6 +137,7 @@ export default async function ProductPage({ params }: Props) {
         assurances={storeAssurances(locale, t, fulfilment, zones ?? [], paymentMethods ?? [])}
         sizeGuide={table && guide ? { title: localized(guide.name, locale), description: localized(guide.description, locale) || undefined, table } : null}
         promotion={promotion}
+        linked={linkedTiles.length > 1 ? <LinkedProducts heading={t("design")} tiles={linkedTiles} /> : null}
         details={
           // Beside the image on desktop (filling the column under the purchase controls); on a phone the same place it
           // always had — straight after the purchase controls — so the phone flow is unchanged.
@@ -136,6 +149,10 @@ export default async function ProductPage({ params }: Props) {
           ) : null
         }
       />
+
+      {includedCards.length > 0 ? (
+        <IncludedProducts heading={t("whatsInside")} cards={includedCards} />
+      ) : null}
 
       {specs.length > 0 ? (
         <div className="mt-[var(--sf-section)] grid gap-10 lg:grid-cols-12 lg:gap-12">

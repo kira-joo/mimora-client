@@ -222,9 +222,32 @@ export interface MatrixVariant {
   galleryOverride: ImageAsset[];
 }
 
+/** Another product in the same product group, offered as an alternative (its own product and page). */
+export interface LinkedProductItem {
+  slug: string;
+  name: Localized;
+  /** The colour or design name staff gave it ("Brown", "بني"). */
+  label: Localized;
+  image?: ImageAsset;
+  /** The product this page is for. */
+  current: boolean;
+}
+
+/** A product inside this one (a gift box's contents), resolved live from its own record. */
+export interface IncludedProductItem {
+  slug: string;
+  name: Localized;
+  quantity: number;
+  images: ImageAsset[];
+}
+
 export interface ProductDetail {
   product: Product;
   variants: MatrixVariant[];
+  /** Absent from older backends; `null` when the product has no published alternatives. */
+  linkedProducts?: { items: LinkedProductItem[] } | null;
+  /** Absent from older backends; empty when the product contains nothing. */
+  includedProducts?: IncludedProductItem[];
 }
 
 export interface CatalogFacets {

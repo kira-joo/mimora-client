@@ -6,6 +6,7 @@ import "server-only";
  */
 import { createApiClient, fetchAdapter, joinUrl, type ApiClient, type RequestAdapter } from "@kira-joo/frontend-toolkit-core/server";
 import { verifyBackendIdentity } from "../config/backend-identity";
+import { sendWithTransientRetry } from "./transient-retry";
 import { staffApiUrl } from "../config/server-env";
 
 /**
@@ -25,10 +26,12 @@ let client: ApiClient | undefined;
  * itself `no-store` and independent of the read's own `next: { revalidate, tags }`, which passes through untouched.
  * A failure surfaces as the client's normalised error with no status, so `orNull` (D-15) degrades it like an outage.
  */
-const verifiedFetchAdapter: RequestAdapter = async (request) => {
-  await verifyBackendIdentity();
-  return fetchAdapter(request);
-};
+const verifiedFetchAdapter: RequestAdapter = (request) =>
+  // A read that got no answer (a cold backend during a deploy's prerender burst) is retried once — see transient-retry.ts.
+  sendWithTransientRetry(request, async (attempt) => {
+    await verifyBackendIdentity();
+    return fetchAdapter(attempt);
+  });
 
 export function storefrontApi(): ApiClient {
   client ??= createApiClient({ baseURL: () => joinUrl(staffApiUrl(), "api/storefront"), adapter: verifiedFetchAdapter, timeoutMs: 10_000 });

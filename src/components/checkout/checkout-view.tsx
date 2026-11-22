@@ -66,7 +66,6 @@ export function CheckoutView({ config, mayHaveCart = true }: { config: CheckoutC
   const queryClient = useQueryClient();
   const { data: customer, isLoading: sessionLoading } = useSession();
   const cart = useCart();
-  const quote = useQuote(true);
   const setFulfilment = useSetFulfilment();
   const form = useRef<HTMLFormElement>(null);
   const idempotencyKey = useRef<string | null>(null);
@@ -84,6 +83,8 @@ export function CheckoutView({ config, mayHaveCart = true }: { config: CheckoutC
     paymentMethod: methods.length === 1 ? methods[0]!.method : undefined,
     termsAccepted: false,
   }));
+  // Delivery is priced for the governorate in the form right now — not an address the cart saved on an earlier visit.
+  const quote = useQuote(true, draft.mode === "DELIVERY" ? { governorate: draft.address.governorate } : undefined);
   // Saved addresses (plan #36): a signed-in customer picks one, which prefills the form; the form stays editable, and a guest never sees any of this.
   const savedAddresses = useAddresses().data?.addresses ?? [];
   const savedPicked = savedAddresses.find((candidate) => matchesSaved(draft.address, candidate, config.zones))?._id;

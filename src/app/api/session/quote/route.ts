@@ -5,5 +5,8 @@ export const dynamic = "force-dynamic";
 
 /** BFF → backend `/api/shop/quote` (no-store; see lib/session/shop-request.ts). */
 export async function POST(request: Request) {
-  return toResponse(await shopRequest(request, ShopEndpoints.quote));
+  // Checkout's live delivery form (delivery=true&governorate=…) is relayed as is; the backend validates it.
+  const search = new URL(request.url).searchParams;
+  const query = search.get("delivery") === "true" ? { delivery: "true", ...(search.get("governorate") ? { governorate: search.get("governorate")! } : {}) } : undefined;
+  return toResponse(await shopRequest(request, ShopEndpoints.quote, query ? { query } : {}));
 }

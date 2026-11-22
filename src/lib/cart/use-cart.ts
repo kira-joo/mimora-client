@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { sessionApi } from "@/lib/api/session-client";
 import { SessionEndpoints, type FulfilmentDraft } from "@/lib/api/session.endpoints";
 import type { CartView } from "@/lib/api/types";
@@ -98,6 +98,19 @@ export function useRemovePromotion() {
 }
 
 /** The authoritative prices — the only numbers this app shows for a cart (MDS §12). Never cached beyond the cart it describes. */
-export function useQuote(enabled: boolean) {
-  return useQuery({ queryKey: cartKeys.quote, queryFn: () => sessionApi().request(SessionEndpoints.quote), enabled, staleTime: 0, retry: false });
+/**
+ * `delivery` is checkout's live delivery form: shipping is priced for the governorate chosen there now (pending while
+ * none is), not for a fulfilment the cart saved earlier. The backend prices it; nothing is saved by quoting.
+ */
+export function useQuote(enabled: boolean, delivery?: { governorate: string }) {
+  const query = delivery ? { delivery: "true" as const, ...(delivery.governorate ? { governorate: delivery.governorate } : {}) } : undefined;
+  return useQuery({
+    queryKey: query ? [...cartKeys.quote, query] : cartKeys.quote,
+    queryFn: () => sessionApi().request(SessionEndpoints.quote, query ? { query } : undefined),
+    enabled,
+    staleTime: 0,
+    retry: false,
+    // Changing governorate keeps the last quote on screen until the new one arrives, rather than flashing a skeleton.
+    placeholderData: keepPreviousData,
+  });
 }

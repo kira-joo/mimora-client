@@ -30,6 +30,7 @@ import { Choice, Field, FieldError, Section } from "./fields";
 import { MobileSummary, SummaryBody } from "./order-summary";
 import { MOTION } from "@/lib/motion/tokens";
 import { GiftWrapOption } from "@/components/cart/gift-wrap-option";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 export interface CheckoutConfig {
   settings: FulfilmentSettings | null;
@@ -318,21 +319,25 @@ export function CheckoutView({ config, mayHaveCart = true }: { config: CheckoutC
                     </div>
                   ) : null}
                   {zoneOptions.length > 0 ? (
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-[0.9375rem] font-medium">{t("governorate")}</span>
+                    <div className="flex flex-col gap-1.5">
+                      <span id="governorate-label" className="text-[0.9375rem] font-medium">
+                        {t("governorate")}
+                      </span>
                       {/* The value is the zone's English name — what the backend's quote matches on. */}
-                      <select name="governorate" value={draft.address.governorate} onChange={(event) => update({ address: { ...draft.address, governorate: event.target.value } })} className="field" aria-invalid={errors.governorate ? true : undefined} aria-describedby={errors.governorate ? "governorate-error" : undefined} autoComplete="address-level1">
-                        <option value="" disabled>
-                          —
-                        </option>
-                        {zoneOptions.map((zone) => (
-                          <option key={zone._id} value={zone.name.en}>
-                            {localized(zone.name, locale)} — {zone.fee === "0" ? t("free") : formatPrice(locale, zone.fee, currency)}
-                          </option>
-                        ))}
-                      </select>
+                      <SearchableSelect
+                        name="governorate"
+                        labelledBy="governorate-label"
+                        value={draft.address.governorate}
+                        onChange={(governorate) => update({ address: { ...draft.address, governorate } })}
+                        options={zoneOptions.map((zone) => ({ value: zone.name.en, label: localized(zone.name, locale), keywords: `${zone.name.ar ?? ""}`, meta: zone.fee === "0" ? t("free") : formatPrice(locale, zone.fee, currency) }))}
+                        placeholder={t("chooseGovernorate")}
+                        searchPlaceholder={t("searchGovernorate")}
+                        emptyText={t("noGovernorateMatch")}
+                        invalid={Boolean(errors.governorate)}
+                        describedBy={errors.governorate ? "governorate-error" : undefined}
+                      />
                       {errors.governorate ? <FieldError id="governorate-error">{errors.governorate}</FieldError> : null}
-                    </label>
+                    </div>
                   ) : (
                     <Field name="governorate" label={t("governorate")} error={errors.governorate} autoComplete="address-level1" value={draft.address.governorate} onChange={(event) => update({ address: { ...draft.address, governorate: event.target.value } })} />
                   )}

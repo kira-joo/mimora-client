@@ -28,9 +28,9 @@ describe("heroBanners", () => {
     expect(en.kind === "artwork" && en.mobileImage.src).toBe("/banner-md-en.png");
   });
 
-  it("the brand banner leads to the Gift Boxes category; the gift collection to All Products", () => {
+  it("the brand banner and the gift collection both lead to All Products", () => {
     const [brand, gifts] = heroBanners("en", []);
-    expect(brand.href).toBe("/categories/gift-boxes");
+    expect(brand.href).toBe("/products");
     expect(gifts.href).toBe("/products");
   });
 

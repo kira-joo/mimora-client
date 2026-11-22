@@ -321,6 +321,8 @@
   "recipientName": "اسم المستلم",
   "postalCodeOptional": "الرمز البريدي (اختياري)",
   "chooseGovernorate": "اختر المحافظة",
+  "searchGovernorate": "ابحث عن محافظتك",
+  "noGovernorateMatch": "لا توجد محافظة بهذا الاسم",
   "makeDefaultCheck": "استخدمه كعنوان افتراضي",
   "saveAddress": "حفظ العنوان",
   "addressSaved": "تم حفظ العنوان",

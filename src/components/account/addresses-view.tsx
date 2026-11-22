@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@kira-joo/frontend-toolkit-tailwind/server";
@@ -198,19 +199,25 @@ function AddressForm({ zones, address, isFirst, onDone }: { zones: Pick<Delivery
 
 function SelectField({ name, label, placeholder, options, error, ...select }: { name: string; label: string; placeholder: string; options: Array<{ value: string; label: string }>; error?: string; value: string; onChange(event: { target: { value: string } }): void }) {
   const id = useId();
+  const t = useTranslations("common");
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-[0.9375rem] font-medium">
+      <span id={`${id}-label`} className="text-[0.9375rem] font-medium">
         {label}
-      </label>
-      <select id={id} name={name} className={cn("field", error && "border-critical")} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined} autoComplete="address-level1" {...select}>
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      </span>
+      <SearchableSelect
+        id={id}
+        name={name}
+        labelledBy={`${id}-label`}
+        value={select.value}
+        onChange={(value) => select.onChange({ target: { value } })}
+        options={options}
+        placeholder={placeholder}
+        searchPlaceholder={t("searchGovernorate")}
+        emptyText={t("noGovernorateMatch")}
+        invalid={Boolean(error)}
+        describedBy={error ? `${id}-error` : undefined}
+      />
       {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}
     </div>
   );

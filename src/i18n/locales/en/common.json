@@ -321,6 +321,8 @@
   "recipientName": "Recipient name",
   "postalCodeOptional": "Postal code (optional)",
   "chooseGovernorate": "Choose a governorate",
+  "searchGovernorate": "Search governorates",
+  "noGovernorateMatch": "No governorate matches",
   "makeDefaultCheck": "Use as my default address",
   "saveAddress": "Save address",
   "addressSaved": "Address saved",

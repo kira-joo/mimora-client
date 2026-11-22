@@ -175,6 +175,7 @@ export function OrderDetailView({ order, token, justPlaced, taxMode }: { order: 
             <Row label={t("subtotal")} value={price(order.subtotal)} />
             {order.discount !== "0" ? <Row label={t("discount")} value={`−${price(order.discount)}`} /> : null}
             <Row label={t("delivery")} value={order.fulfilment.fee === "0" ? t("free") : price(order.fulfilment.fee)} />
+            {order.giftWrap ? <Row label={t("giftWrapRow")} value={price(order.giftWrap.fee)} /> : null}
             <TaxAddedRow line={tax} price={price} />
             <div className="flex items-baseline justify-between border-t border-line pt-3">
               <dt className="font-semibold">{t("total")}</dt>

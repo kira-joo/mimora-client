@@ -60,12 +60,14 @@ export function MobileTabBar({ categories }: { categories: Category[] }) {
               href="/products"
               aria-current={current === "shop" ? "page" : undefined}
               className={cn(
-                "relative -mt-7 flex min-h-16 min-w-[5.5rem] flex-col items-center justify-center gap-1 rounded-[1.75rem] bg-action px-3 text-[0.8125rem] font-semibold leading-none text-on-action shadow-card ring-4 ring-surface transition-[background-color,translate] duration-[var(--sf-duration-fast)] ease-standard hover:bg-action-hover active:translate-y-px",
+                // Owner decision (2026-11-22): smaller than the original 64px pill — 48px tall (still above the 44px
+                // touch minimum), raised less, so it no longer dominates the phone's bottom edge.
+                "relative -mt-4 flex min-h-12 min-w-[4.5rem] flex-col items-center justify-center gap-0.5 rounded-[1.375rem] bg-action px-2.5 text-[0.6875rem] font-semibold leading-none text-on-action shadow-card ring-[3px] ring-surface transition-[background-color,translate] duration-[var(--sf-duration-fast)] ease-standard hover:bg-action-hover active:translate-y-px",
                 current === "shop" && "outline-2 outline-offset-2 outline-ornament",
               )}
             >
-              <Sparkle className="absolute -top-1.5 end-1 size-3.5 text-ornament" />
-              <ShoppingBag className="size-6" strokeWidth={1.8} aria-hidden="true" />
+              <Sparkle className="absolute -top-1 end-1 size-3 text-ornament" />
+              <ShoppingBag className="size-5" strokeWidth={1.8} aria-hidden="true" />
               <span className="whitespace-nowrap">{t("shopNow")}</span>
             </Link>
           </li>

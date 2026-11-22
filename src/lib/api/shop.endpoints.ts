@@ -25,6 +25,7 @@ export const ShopEndpoints = {
   cartFulfilment: e("cart/fulfilment", MethodType.PUT),
   cartPromotionApply: e("cart/promotion", MethodType.POST),
   cartPromotionRemove: e("cart/promotion", MethodType.DELETE),
+  cartGiftWrap: e("cart/gift-wrap", MethodType.PUT),
   quote: e("quote", MethodType.POST),
 
   orderPlace: e("orders", MethodType.POST),

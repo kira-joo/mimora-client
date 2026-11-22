@@ -17,6 +17,7 @@ import { cartCount, useApplyPromotion, useCart, useQuote, useRemoveLine, useRemo
 import { formatNumber, formatPrice, localized } from "@/lib/format/numerals";
 import { CartLine } from "./cart-line";
 import type { Locale } from "@/i18n/routing";
+import { GiftWrapOption } from "@/components/cart/gift-wrap-option";
 
 /**
  * Cart (MDS §6.5, §11). Every number on it is the server's quote — this app
@@ -96,6 +97,7 @@ export function CartView({ mayHaveCart = true, canCheckout = true, taxMode = nul
           <div className="flex flex-col gap-5 bg-surface-muted p-5 lg:sticky lg:top-[calc(72px+1.5rem)] lg:p-6">
             <h2 className="t-heading">{t("orderSummary")}</h2>
             <PromotionForm applied={cart.data.appliedPromotionCode} promotion={q.promotion} />
+            <GiftWrapOption giftWrap={q.giftWrap} />
             <dl className="flex flex-col gap-2 border-t border-line pt-4" aria-live="polite">
               <div className="flex items-center justify-between">
                 <dt className="text-ink-secondary">
@@ -107,6 +109,12 @@ export function CartView({ mayHaveCart = true, canCheckout = true, taxMode = nul
                 <div className="flex items-center justify-between text-positive">
                   <dt>{q.promotion?.name ? `${t("discount")} · ${localized(q.promotion.name, locale)}` : t("discount")}</dt>
                   <dd className="tabular font-semibold">−{price(q.discount)}</dd>
+                </div>
+              ) : null}
+              {q.giftWrapFee && q.giftWrapFee !== "0" ? (
+                <div className="flex items-center justify-between">
+                  <dt className="text-ink-secondary">{t("giftWrapRow")}</dt>
+                  <dd className="tabular">{price(q.giftWrapFee)}</dd>
                 </div>
               ) : null}
               <TaxAddedRow line={tax} price={price} className="items-center" />

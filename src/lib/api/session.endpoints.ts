@@ -25,6 +25,7 @@ export const SessionEndpoints = {
   setFulfilment: { url: "cart/fulfilment", methodType: MethodType.PUT } as Endpoint<{ body: FulfilmentDraft; returnType: CartView }>,
   applyPromotion: { url: "cart/promotion", methodType: MethodType.POST } as Endpoint<{ body: { code: string }; returnType: CartView }>,
   removePromotion: { url: "cart/promotion", methodType: MethodType.DELETE } as Endpoint<{ returnType: CartView }>,
+  setGiftWrap: { url: "cart/gift-wrap", methodType: MethodType.PUT } as Endpoint<{ body: { giftWrap: boolean }; returnType: CartView }>,
   quote: { url: "quote", methodType: MethodType.POST } as Endpoint<{ returnType: Quote }>,
 
   placeOrder: { url: "orders", methodType: MethodType.POST } as Endpoint<{ body: { paymentMethod: string; termsVersionAccepted: number; guestContact?: { name: string; phone: string; email?: string }; notes?: string }; returnType: PlacedOrder }>,

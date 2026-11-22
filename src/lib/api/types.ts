@@ -322,6 +322,8 @@ export interface CartView {
   lines: CartLine[];
   fulfilmentDraft?: { mode: "DELIVERY" | "PICKUP"; address?: DeliveryAddress; pickupLocationId?: string };
   appliedPromotionCode?: string;
+  /** The customer ticked gift box & wrapping (its price is the quote's). */
+  giftWrap?: boolean;
   /** Guest carts only. Kept by the BFF in an httpOnly cookie — never reaches the browser. */
   cartToken?: string;
 }
@@ -353,6 +355,10 @@ export interface Quote {
   discount: Money;
   /** null until a fulfilment option is chosen (`shippingPending`). */
   shippingFee: Money | null;
+  /** Gift box & wrapping charged on this order ("0" when not chosen) — already in `total`. */
+  giftWrapFee: Money;
+  /** Whether gift box & wrapping is offered, whether it is ticked, and what it costs. */
+  giftWrap: { available: boolean; selected: boolean; fee: Money | null };
   tax: Money;
   total: Money;
   /** The ONE promotion applied (the backend picks the best of the entered code and the automatic ones). `code` is "" for an automatic one. */
@@ -401,6 +407,8 @@ export interface OrderDetail {
   subtotal: Money;
   discount: Money;
   tax: Money;
+  /** Gift box & wrapping, when chosen: the fee the order paid (already in `total`). */
+  giftWrap?: { fee: Money };
   total: Money;
   fulfilment: {
     mode: "DELIVERY" | "PICKUP";
@@ -446,6 +454,8 @@ export interface Invoice {
   discount: Money;
   promotionCode?: string;
   shipping: Money;
+  /** Gift box & wrapping, when the order included it. */
+  giftWrap?: Money;
   /** `ADDED`: `amount` sits on top of the subtotal. `INCLUDED`: `amount` is already inside the total. The mode in force at placement. */
   tax: { mode: "INCLUDED" | "ADDED"; rate: number; amount: Money };
   total: Money;

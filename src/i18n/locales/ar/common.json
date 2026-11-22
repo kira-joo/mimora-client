@@ -523,5 +523,8 @@
   "hero_offers_title": "عروض Mimora",
   "hero_offers_body": "خلي اللحظات الحلوة أحلى مع عروضنا.",
   "hero_offers_cta": "اكتشفي العروض",
-  "closeMenu": "إغلاق القائمة"
+  "closeMenu": "إغلاق القائمة",
+  "giftWrapLabel": "بوكس وتغليف هدايا",
+  "giftWrapHint": "نغلّف طلبك كله في بوكس هدايا أنيق مع شريطة — يُضاف مرة واحدة للطلب.",
+  "giftWrapRow": "بوكس وتغليف هدايا"
 }

@@ -29,6 +29,7 @@ import type { Locale } from "@/i18n/routing";
 import { Choice, Field, FieldError, Section } from "./fields";
 import { MobileSummary, SummaryBody } from "./order-summary";
 import { MOTION } from "@/lib/motion/tokens";
+import { GiftWrapOption } from "@/components/cart/gift-wrap-option";
 
 export interface CheckoutConfig {
   settings: FulfilmentSettings | null;
@@ -381,6 +382,7 @@ export function CheckoutView({ config, mayHaveCart = true }: { config: CheckoutC
           </Section>
 
           <Section step={(modes.length > 1 ? 4 : 3) + (draft.mode ? 1 : 0)} title={t("review")}>
+            <GiftWrapOption giftWrap={q?.giftWrap} className="mb-5" />
             <div className="flex flex-col gap-1.5">
               <label htmlFor="order-notes" className="text-[0.9375rem] font-medium">
                 {tp("orderNotesLabel")}

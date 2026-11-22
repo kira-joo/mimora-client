@@ -53,6 +53,12 @@ export function SummaryBody({ quote, taxMode }: { quote: Quote; taxMode: TaxMode
           <dt className="text-ink-secondary">{quote.promotion?.waivesShippingFee && quote.promotion.name ? `${t("delivery")} · ${localized(quote.promotion.name, locale)}` : t("delivery")}</dt>
           <dd className="tabular">{quote.shippingFee === null ? "—" : quote.shippingFee === "0" ? t("free") : price(quote.shippingFee)}</dd>
         </div>
+        {quote.giftWrapFee && quote.giftWrapFee !== "0" ? (
+          <div className="flex justify-between">
+            <dt className="text-ink-secondary">{t("giftWrapRow")}</dt>
+            <dd className="tabular">{price(quote.giftWrapFee)}</dd>
+          </div>
+        ) : null}
         <TaxAddedRow line={tax} price={price} />
         <div className="flex items-baseline justify-between border-t border-line pt-3">
           <dt className="font-semibold">{t("total")}</dt>

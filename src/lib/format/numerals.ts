@@ -19,6 +19,11 @@ export function formatPrice(locale: Locale, amount: string, currency: string): s
   return moneyView(currency, NUMBER_LOCALE[locale]).format(amount, { trimZeroFraction: true });
 }
 
+/** The same amount without the currency ("90" / "٩٠") — for a secondary figure shown beside a price that already carries it. */
+export function formatAmount(locale: Locale, amount: string, currency: string): string {
+  return moneyView(currency, NUMBER_LOCALE[locale]).format(amount, { trimZeroFraction: true, display: "none" });
+}
+
 export function formatNumber(locale: Locale, value: number): string {
   return new Intl.NumberFormat(NUMBER_LOCALE[locale]).format(value);
 }

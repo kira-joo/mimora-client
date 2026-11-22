@@ -245,6 +245,12 @@ export function InvoiceSheet({ invoice }: { invoice: Invoice }) {
         ) : null}
         <dt>{common("delivery")}</dt>
         <dd className="tabular text-end">{hasValue(invoice.shipping) ? price(invoice.shipping) : common("free")}</dd>
+        {invoice.giftWrap ? (
+          <>
+            <dt>{common("giftWrapRow")}</dt>
+            <dd className="tabular text-end">{price(invoice.giftWrap)}</dd>
+          </>
+        ) : null}
         {/* Tax by the mode in force when the order was placed: on top of the subtotal, or already inside the total. */}
         {invoice.tax.mode === "ADDED" ? (
           <>

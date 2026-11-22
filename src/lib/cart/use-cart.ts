@@ -88,6 +88,11 @@ export function useApplyPromotion() {
   return useCartMutation((code: string) => sessionApi().request(SessionEndpoints.applyPromotion, { body: { code } }));
 }
 
+/** Ticks or unticks gift box & wrapping; the cart is updated and the quote (which prices it) refetched. */
+export function useSetGiftWrap() {
+  return useCartMutation((giftWrap: boolean) => sessionApi().request(SessionEndpoints.setGiftWrap, { body: { giftWrap } }));
+}
+
 export function useRemovePromotion() {
   return useCartMutation(() => sessionApi().request(SessionEndpoints.removePromotion));
 }

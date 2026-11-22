@@ -523,5 +523,8 @@
   "hero_offers_title": "Mimora Offers",
   "hero_offers_body": "Make your sweet moments even sweeter with our offers.",
   "hero_offers_cta": "Discover the offers",
-  "closeMenu": "Close menu"
+  "closeMenu": "Close menu",
+  "giftWrapLabel": "Gift box & wrapping",
+  "giftWrapHint": "We’ll pack your whole order in a pretty gift box with a ribbon — added once per order.",
+  "giftWrapRow": "Gift box & wrapping"
 }

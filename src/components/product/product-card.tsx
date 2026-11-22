@@ -174,7 +174,7 @@ export function ProductCard({ product, sizes = "(min-width: 1536px) 22vw, (min-w
             <span className="line-clamp-2">{product.name}</span>
           </Link>
         </h3>
-        {product.price ? <Price amount={product.price} rangeFrom={product.priceIsRange} compareAt={product.compareAt} /> : null}
+        {product.price ? <Price amount={product.price} rangeFrom={product.priceIsRange} compareAt={product.compareAt} inline /> : null}
         {/* Icon AND text — the signal never rests on colour alone. */}
         {product.lowStock ? (
           <span className="inline-flex items-center gap-1 text-[0.8125rem] font-medium text-caution">

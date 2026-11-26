@@ -61,6 +61,7 @@
   "colour": "Colour",
   "sortPriceAsc": "Price: low to high",
   "sortPriceDesc": "Price: high to low",
+  "sortFeatured": "Featured",
   "sortNewest": "Newest",
   "noMatchesTitle": "No products match",
   "noMatchesBody": "Nothing for \"{q}\" with the filters applied.",

@@ -45,7 +45,8 @@ export type ProductListQuery = {
   inStock?: boolean;
 };
 
-export type ProductSort = "newest" | "price_asc" | "price_desc";
+/** `manual` is the merchant's own arrangement and the backend's default order; the others are a shopper's choice. */
+export type ProductSort = "manual" | "newest" | "price_asc" | "price_desc";
 
 export const StorefrontEndpoints = {
   storeProfile: { url: "store-profile", methodType: MethodType.GET } as Endpoint<{ returnType: StoreProfile }>,

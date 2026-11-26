@@ -3,7 +3,7 @@ import type { Locale } from "../../i18n/routing";
 
 /*
  * D-10 — numerals are per locale, identifiers are not (MDS §24). `ar` renders
- * Arabic-Indic, `en` Western; SKUs, order numbers, phone numbers and tracking
+ * Arabic-Indic, `en` Western — except prices, which are Western everywhere (see `PRICE_LOCALE` below); SKUs, order numbers, phone numbers and tracking
  * numbers stay Western in both. ONE helper per content type, and no component
  * decides its own numeral system.
  *
@@ -14,14 +14,43 @@ import type { Locale } from "../../i18n/routing";
  */
 const NUMBER_LOCALE: Record<Locale, string> = { ar: "ar-EG-u-nu-arab", en: "en-EG-u-nu-latn" };
 
-/** Money arrives as a string (never a float) and is only ever formatted here — zero arithmetic on money in this app. */
-export function formatPrice(locale: Locale, amount: string, currency: string): string {
-  return moneyView(currency, NUMBER_LOCALE[locale]).format(amount, { trimZeroFraction: true });
+/*
+ * Prices are the one exception to D-10 (owner decision, 2026-11-26): Western digits in EVERY locale and no thousands
+ * separator — "1150 ج.م.‏", "EGP 1150". Display only; amounts, the API and stored values are untouched. Still pinned
+ * with `-u-nu-latn` for the same server/browser hydration reason as above.
+ */
+const PRICE_LOCALE: Record<Locale, string> = { ar: "ar-EG-u-nu-latn", en: "en-EG-u-nu-latn" };
+
+/** Each locale's grouping separator, read from `Intl` rather than assumed (it is "," for both today). */
+const GROUP_SEPARATOR: Record<Locale, string> = {
+  ar: groupSeparator(PRICE_LOCALE.ar),
+  en: groupSeparator(PRICE_LOCALE.en),
+};
+
+function groupSeparator(locale: string): string {
+  return new Intl.NumberFormat(locale).formatToParts(1111111).find((part) => part.type === "group")?.value ?? "";
 }
 
-/** The same amount without the currency ("90" / "٩٠") — for a secondary figure shown beside a price that already carries it. */
+/** Drops the thousands separator from an already formatted price. The decimal separator is a different character. */
+function ungrouped(locale: Locale, formatted: string): string {
+  const group = GROUP_SEPARATOR[locale];
+  return group ? formatted.split(group).join("") : formatted;
+}
+
+/** Money arrives as a string (never a float) and is only ever formatted here — zero arithmetic on money in this app. */
+export function formatPrice(locale: Locale, amount: string, currency: string): string {
+  return ungrouped(locale, moneyView(currency, PRICE_LOCALE[locale]).format(amount, { trimZeroFraction: true }));
+}
+
+/** The same amount without the currency ("90") — for a secondary figure shown beside a price that already carries it. */
 export function formatAmount(locale: Locale, amount: string, currency: string): string {
-  return moneyView(currency, NUMBER_LOCALE[locale]).format(amount, { trimZeroFraction: true, display: "none" });
+  return ungrouped(locale, moneyView(currency, PRICE_LOCALE[locale]).format(amount, { trimZeroFraction: true, display: "none" }));
+}
+
+/** A price-like number with no currency (a price filter's bounds), formatted exactly like a price's figure: whole → "2500", otherwise two decimals → "2500.50". */
+export function formatPriceNumber(locale: Locale, value: number): string {
+  const fractionDigits = Number.isInteger(value) ? 0 : 2;
+  return ungrouped(locale, new Intl.NumberFormat(PRICE_LOCALE[locale], { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits }).format(value));
 }
 
 export function formatNumber(locale: Locale, value: number): string {

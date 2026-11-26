@@ -21,7 +21,7 @@ const HEADING = "t-label text-ink-muted mb-1";
  *
  * It is a paper document: on screen a sheet with a Print button, on paper the sheet alone (A4, `invoice-print.css`).
  * Ink on white in both grounds on purpose — an invoice that prints dark because the site was in dark mode is useless.
- * Numerals follow the locale (D-10: Arabic-Indic in `ar`), except identifiers people copy and file — the invoice and
+ * Numerals follow the locale (D-10: Arabic-Indic in `ar`) — except prices, Western everywhere (`formatPrice`), and identifiers people copy and file — the invoice and
  * order numbers, SKUs and phone numbers stay Western and are isolated so RTL never reorders them.
  */
 export function InvoiceView({ orderNumber, token }: { orderNumber: string; token?: string }) {

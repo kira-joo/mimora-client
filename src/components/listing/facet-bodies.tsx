@@ -8,13 +8,13 @@ import { facetClear, facetSelected, facetToggle, type FacetDef } from "@/lib/cat
 import { boundToPosition, positionToBound, priceProblem, type SliderScale } from "@/lib/catalog/listing-price";
 import type { ListingState } from "@/lib/catalog/listing-query";
 import { SORTS } from "@/lib/catalog/listing-query";
-import { formatNumber, formatPrice } from "@/lib/format/numerals";
+import { formatNumber, formatPrice, formatPriceNumber } from "@/lib/format/numerals";
 import type { Locale } from "@/i18n/routing";
 
 const chip =
   "group inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-pill border border-line-strong bg-surface px-4 text-[0.9375rem] transition-colors duration-[var(--sf-duration-fast)] ease-standard hover:bg-blush-soft has-[:checked]:border-action has-[:checked]:bg-blush has-[:checked]:font-semibold has-[:checked]:text-heading has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus";
 
-export const SORT_KEY = { newest: "sortNewest", price_asc: "sortPriceAsc", price_desc: "sortPriceDesc" } as const;
+export const SORT_KEY = { manual: "sortFeatured", newest: "sortNewest", price_asc: "sortPriceAsc", price_desc: "sortPriceDesc" } as const;
 
 /** One choice facet as a wrap of pill choices: real radios (one) or checkboxes (any), so arrows / Space work natively. */
 export function ChoiceChips({ def, state, onChange, scope }: { def: FacetDef; state: ListingState; onChange(next: ListingState): void; scope: string }) {
@@ -180,7 +180,7 @@ export function PriceRange({ min, max, scale, currency, onChange, onInvalid }: P
             inputMode="decimal"
             dir="ltr"
             autoComplete="off"
-            placeholder={scale ? formatNumber(locale, scale.min) : undefined}
+            placeholder={scale ? formatPriceNumber(locale, scale.min) : undefined}
             value={minText}
             onChange={(event) => {
               const text = event.target.value.trim();
@@ -202,7 +202,7 @@ export function PriceRange({ min, max, scale, currency, onChange, onInvalid }: P
             inputMode="decimal"
             dir="ltr"
             autoComplete="off"
-            placeholder={scale ? formatNumber(locale, scale.max) : undefined}
+            placeholder={scale ? formatPriceNumber(locale, scale.max) : undefined}
             value={maxText}
             onChange={(event) => {
               const text = event.target.value.trim();

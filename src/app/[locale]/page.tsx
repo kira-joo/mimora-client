@@ -43,8 +43,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       if (section.type !== "productRail" && section.type !== "collectionStory") return;
       const collectionId = collectionSlug ? collections?.find((collection) => collection.slug === collectionSlug)?._id : undefined;
       if (collectionSlug && !collectionId) return;
-      // "newest" is the listing's default order, so it needs no sort parameter.
-      const page = await orNull(() => listProducts({ limit: 8, ...(collectionId ? { collectionId } : {}) }), `home rail ${index}`);
+      // A "newest" rail asks for newest explicitly: the listing's default is the merchant's manual arrangement, which is
+      // what a collection rail shows.
+      const newest = section.type === "productRail" && section.source === "newest";
+      const page = await orNull(() => listProducts({ limit: 8, ...(collectionId ? { collectionId } : {}), ...(newest ? { sort: "newest" as const } : {}) }), `home rail ${index}`);
       if (page) rails.set(index, page.data.map((product) => toCardProduct(product, locale, categories ?? [], now, badges)));
     })
   );

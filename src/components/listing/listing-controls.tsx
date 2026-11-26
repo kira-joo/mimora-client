@@ -8,8 +8,8 @@ import { useRouter } from "@/i18n/navigation";
 import { Sheet } from "@/components/ui/sheet";
 import { appliedFilterCount, clearFilters, facetClear, facetSelected, type FacetDef } from "@/lib/catalog/listing-facets";
 import { sliderScale } from "@/lib/catalog/listing-price";
-import { toSearch, type ListingState } from "@/lib/catalog/listing-query";
-import { formatNumber } from "@/lib/format/numerals";
+import { DEFAULT_SORT, toSearch, type ListingState } from "@/lib/catalog/listing-query";
+import { formatNumber, formatPriceNumber } from "@/lib/format/numerals";
 import type { Locale } from "@/i18n/routing";
 import { ChoiceChips, PriceRange, SORT_KEY, SortList, StockSwitch } from "./facet-bodies";
 import { FilterPopover, pillClass } from "./filter-popover";
@@ -74,7 +74,7 @@ export function ListingControls({ basePath, state, facets, priceRange, currency,
   }
 
   const priceOn = Boolean(state.minPrice || state.maxPrice);
-  const priceSummary = state.minPrice && state.maxPrice ? `${formatNumber(locale, Number(state.minPrice))}–${formatNumber(locale, Number(state.maxPrice))}` : state.minPrice ? `${t("priceFrom")} ${formatNumber(locale, Number(state.minPrice))}` : state.maxPrice ? `${t("priceTo")} ${formatNumber(locale, Number(state.maxPrice))}` : undefined;
+  const priceSummary = state.minPrice && state.maxPrice ? `${formatPriceNumber(locale, Number(state.minPrice))}–${formatPriceNumber(locale, Number(state.maxPrice))}` : state.minPrice ? `${t("priceFrom")} ${formatPriceNumber(locale, Number(state.minPrice))}` : state.maxPrice ? `${t("priceTo")} ${formatPriceNumber(locale, Number(state.maxPrice))}` : undefined;
 
   return (
     <section aria-label={ui("barLabel")} className="sticky top-[var(--sf-header-height)] z-20 -mx-[var(--sf-gutter)] mt-2 bg-canvas px-[var(--sf-gutter)] py-3">
@@ -110,7 +110,7 @@ export function ListingControls({ basePath, state, facets, priceRange, currency,
             );
           })}
 
-        <FilterPopover className="ms-auto" align="end" open={openId === "sort"} onOpenChange={(open) => setOpen("sort", open)} label={`${t("sort")}: ${t(SORT_KEY[state.sort])}`} on={state.sort !== "newest"}>
+        <FilterPopover className="ms-auto" align="end" open={openId === "sort"} onOpenChange={(open) => setOpen("sort", open)} label={`${t("sort")}: ${t(SORT_KEY[state.sort])}`} on={state.sort !== DEFAULT_SORT}>
           <SortList
             value={state.sort}
             scope="bar"
@@ -128,7 +128,7 @@ export function ListingControls({ basePath, state, facets, priceRange, currency,
           {t("filter")}
           {applied ? <span className="tabular rounded-pill bg-action px-2 text-[0.8125rem] leading-6 text-on-action">{formatNumber(locale, applied)}</span> : null}
         </button>
-        <button type="button" onClick={() => setSortOpen(true)} className={cn(pillClass(state.sort !== "newest"), "justify-center")}>
+        <button type="button" onClick={() => setSortOpen(true)} className={cn(pillClass(state.sort !== DEFAULT_SORT), "justify-center")}>
           <ArrowUpDown className="size-4" aria-hidden="true" />
           {t(SORT_KEY[state.sort])}
         </button>

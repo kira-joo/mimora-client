@@ -6,7 +6,9 @@ import type { Brand, Category, Collection } from "@/lib/api/types";
  * customer terms (slugs, not database ids). This module is the one place that
  * reads it, writes it, and maps it to the backend's query.
  */
-export const SORTS: ProductSort[] = ["newest", "price_asc", "price_desc"];
+export const SORTS: ProductSort[] = ["manual", "newest", "price_asc", "price_desc"];
+/** The backend's own default order — the merchant's arrangement — so it is never sent and never in the URL. */
+export const DEFAULT_SORT: ProductSort = "manual";
 export const PAGE_SIZE = 24;
 
 export interface ListingState {
@@ -83,7 +85,7 @@ export function parseListing(params: Params): ListingState {
     attr: normalizeAttributes(Array.isArray(params.attr) ? params.attr : [params.attr]),
     opt: normalizeOptions(Array.isArray(params.opt) ? params.opt : [params.opt]),
     inStock: one(params.inStock) === "1",
-    sort: SORTS.includes(sort as ProductSort) ? (sort as ProductSort) : "newest",
+    sort: SORTS.includes(sort as ProductSort) ? (sort as ProductSort) : DEFAULT_SORT,
     page: Number.isInteger(page) && page > 1 && page < 1000 ? page : 1,
   };
 }
@@ -100,7 +102,7 @@ export function toSearch(state: Partial<ListingState>): string {
   for (const pair of normalizeAttributes(state.attr ?? [])) params.append("attr", pair);
   for (const pair of normalizeOptions(state.opt ?? [])) params.append("opt", pair);
   if (state.inStock) params.set("inStock", "1");
-  if (state.sort && state.sort !== "newest") params.set("sort", state.sort);
+  if (state.sort && state.sort !== DEFAULT_SORT) params.set("sort", state.sort);
   if (state.page && state.page > 1) params.set("page", String(state.page));
   const value = params.toString();
   return value ? `?${value}` : "";
@@ -130,11 +132,11 @@ export function toApiQuery(state: ListingState, lookups: Lookups, limit = PAGE_S
     ...(state.attr.length ? { attr: state.attr.join("|") } : {}),
     ...(state.opt.length ? { opt: state.opt.join("|") } : {}),
     ...(state.inStock ? { inStock: true } : {}),
-    ...(state.sort !== "newest" ? { sort: state.sort } : {}),
+    ...(state.sort !== DEFAULT_SORT ? { sort: state.sort } : {}),
   };
 }
 
 /** Whether anything narrows the listing — filtered views are dynamic and `noindex` (MDS §5, §21). */
 export function isFiltered(state: ListingState): boolean {
-  return Boolean(state.q || state.minPrice || state.maxPrice || state.brand || state.attr.length > 0 || state.opt.length > 0 || state.inStock || state.sort !== "newest" || state.page > 1);
+  return Boolean(state.q || state.minPrice || state.maxPrice || state.brand || state.attr.length > 0 || state.opt.length > 0 || state.inStock || state.sort !== DEFAULT_SORT || state.page > 1);
 }

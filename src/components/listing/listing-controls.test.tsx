@@ -26,7 +26,7 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
 });
 
-const base: ListingState = { attr: [], opt: [], inStock: false, sort: "newest", page: 1 };
+const base: ListingState = { attr: [], opt: [], inStock: false, sort: "manual", page: 1 };
 
 function ui(state: ListingState, total = 10) {
   return (
@@ -90,5 +90,20 @@ describe("ListingControls — the phone filter sheet's draft", () => {
     expect(push).toHaveBeenCalledTimes(1);
     expect(push.mock.calls[0][0]).toMatch(/^\/shop\?.*inStock=/);
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
+});
+
+describe("ListingControls — the Sort pill", () => {
+  // The pill is "on" (border-action) only when the sort narrows or reorders away from the default — Featured.
+  const sortPill = () => screen.getByRole("button", { name: /^Sort: / });
+
+  it("is not marked active on the default Featured (manual) order", () => {
+    render(ui(base));
+    expect(sortPill().className).not.toContain("border-action");
+  });
+
+  it("is marked active once a shopper picks Newest", () => {
+    render(ui({ ...base, sort: "newest" }));
+    expect(sortPill().className).toContain("border-action");
   });
 });

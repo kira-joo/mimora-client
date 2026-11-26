@@ -150,6 +150,9 @@ distinct products** — a store lists products, not variants.
 
 Sort by relevance, price ascending/descending (from the derived range), and
 newest. **Seek pagination, not deep offsets.**
+*(Updated 2026-11-26, owner decision: the default order is the merchant's manual
+arrangement from `mimora-staff`, labelled Featured / المميزة; newest is an explicit
+choice, and the home "New arrivals" rail requests it explicitly.)*
 
 Each card shows the primary image, name, **price or price range**, a
 compare-at price where present, and a low-stock or out-of-stock signal.
@@ -681,7 +684,9 @@ contact, social, commerce, fulfilment, payment, content), `Category`,
 through `moneyView(currency, locale)` and nothing else.
 
 **Numerals are per locale, with a confirmed carve-out (D-10).** `ar` renders
-Arabic-Indic (`٤٥٠ ج.م`); `en` renders Western (`EGP 450`). **SKUs, order
+Arabic-Indic (`٤٥٠ ج.م`); `en` renders Western (`EGP 450`). *(Superseded for PRICES on 2026-11-26, owner decision:
+every price renders Western digits with no thousands separator in both locales —
+`1150 ج.م.‏`, `EGP 1150`. Other numbers still follow the locale.)* **SKUs, order
 numbers, phone numbers and tracking numbers stay Western in both locales** —
 they are identifiers people copy, dictate and retype elsewhere, and `CHS-42-BE`
 has no Arabic form. **One helper per content type** — `formatPrice`, `formatSku`,

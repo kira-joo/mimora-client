@@ -16,7 +16,7 @@ describe("listing query", () => {
 
   it("drops anything malformed instead of forwarding it", () => {
     const state = parseListing({ sort: "random", page: "-3", minPrice: "1e9", category: "../etc" });
-    expect(state).toMatchObject({ sort: "newest", page: 1, minPrice: undefined, category: undefined });
+    expect(state).toMatchObject({ sort: "manual", page: 1, minPrice: undefined, category: undefined });
   });
 
   it("maps slugs to ids, and an unknown scope to null rather than to everything", () => {
@@ -24,9 +24,18 @@ describe("listing query", () => {
     expect(toApiQuery(parseListing({ category: "nope" }), lookups)).toBeNull();
   });
 
-  it("omits the default sort — newest is the backend's own order", () => {
+  it("omits the default sort — the manual arrangement is the backend's own order", () => {
     expect(toApiQuery(parseListing({}), lookups)).not.toHaveProperty("sort");
     expect(toApiQuery(parseListing({ sort: "price_desc" }), lookups)).toMatchObject({ sort: "price_desc" });
+  });
+
+  it("sends newest explicitly — it is a shopper's choice, no longer the backend default", () => {
+    const state = parseListing({ sort: "newest" });
+    expect(toApiQuery(state, lookups)).toMatchObject({ sort: "newest" });
+    expect(toSearch(state)).toBe("?sort=newest");
+    expect(isFiltered(state)).toBe(true);
+    expect(parseListing({ sort: "manual" }).sort).toBe("manual");
+    expect(toSearch(parseListing({ sort: "manual" }))).toBe("");
   });
   describe("attribute filters", () => {
     it("reads repeated attr params, sorted and unique, and writes them back the same way", () => {

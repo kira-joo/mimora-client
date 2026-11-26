@@ -61,6 +61,7 @@
   "colour": "اللون",
   "sortPriceAsc": "السعر: من الأقل",
   "sortPriceDesc": "السعر: من الأعلى",
+  "sortFeatured": "المميزة",
   "sortNewest": "الأحدث",
   "noMatchesTitle": "لا توجد منتجات مطابقة",
   "noMatchesBody": "لا نتائج لـ«{q}» مع عوامل التصفية الحالية.",

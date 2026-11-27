@@ -2,10 +2,21 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import {
+  getMessages,
+  getTranslations,
+  setRequestLocale,
+} from "next-intl/server";
 import "../../styles/globals.css";
 import { directionOf, isLocale, routing, type Locale } from "@/i18n/routing";
-import { getCategories, getContent, getOperatingHours, getStoreProfile, getTheme, orNull } from "@/lib/catalog/reads";
+import {
+  getCategories,
+  getContent,
+  getOperatingHours,
+  getStoreProfile,
+  getTheme,
+  orNull,
+} from "@/lib/catalog/reads";
 import { buildHoursView } from "@/lib/catalog/operating-hours";
 import { JsonLd } from "@/components/seo/json-ld";
 import { storeJsonLd } from "@/lib/seo/structured-data";
@@ -20,6 +31,7 @@ import { AnnouncementBar } from "@/components/chrome/announcement-bar";
 import { Header } from "@/components/chrome/header";
 import { MobileTabBar } from "@/components/chrome/mobile-tab-bar";
 import { Footer } from "@/components/chrome/footer";
+import { Analytics } from "@vercel/analytics/next";
 import { NewsletterSection } from "@/components/chrome/newsletter-section";
 import { FloatingWhatsApp } from "@/components/chrome/floating-whatsapp";
 import { whatsAppChatUrl } from "@/lib/chrome/footer-links";
@@ -48,7 +60,11 @@ export function generateStaticParams() {
 /** The social-preview image: the site icon itself (src/app/icon.png, served by Next at /icon.png). */
 const SHARE_IMAGE = { url: "/icon.png", size: 512 } as const;
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const profile = await orNull(getStoreProfile, "store profile (metadata)");
@@ -58,16 +74,35 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     // Absolute URLs for Open Graph images and alternates come from this deployment's own origin (SITE_URL).
     ...(origin ? { metadataBase: new URL(origin) } : {}),
-    title: { default: localized(profile.defaultSeo?.title, locale) || name, template: `%s · ${name}` },
-    description: localized(profile.defaultSeo?.description, locale) || localized(profile.tagline, locale),
+    title: {
+      default: localized(profile.defaultSeo?.title, locale) || name,
+      template: `%s · ${name}`,
+    },
+    description:
+      localized(profile.defaultSeo?.description, locale) ||
+      localized(profile.tagline, locale),
     // The favicon and app icons are static files in src/app (icon.png, apple-icon.png, favicon.ico) — Next's file
     // convention emits their tags; the store profile's favicon field is deliberately not read here.
     // Link previews (WhatsApp and every other Open Graph reader) show the Mimora logo — the same file the site serves
     // as its icon (src/app/icon.png, 512×512 PNG, ~255 KB) — on every page; no page overrides it with a product or
     // promotional image. The path is made absolute by `metadataBase` (SITE_URL) above.
-    openGraph: { siteName: name, locale: locale === "ar" ? "ar_EG" : "en_US", images: [{ url: SHARE_IMAGE.url, width: SHARE_IMAGE.size, height: SHARE_IMAGE.size, type: "image/png", alt: name }] },
+    openGraph: {
+      siteName: name,
+      locale: locale === "ar" ? "ar_EG" : "en_US",
+      images: [
+        {
+          url: SHARE_IMAGE.url,
+          width: SHARE_IMAGE.size,
+          height: SHARE_IMAGE.size,
+          type: "image/png",
+          alt: name,
+        },
+      ],
+    },
     twitter: { card: "summary", images: [SHARE_IMAGE.url] },
-    alternates: { languages: alternateLanguages("", resolveStoreLocales(profile)) },
+    alternates: {
+      languages: alternateLanguages("", resolveStoreLocales(profile)),
+    },
   };
 }
 
@@ -77,49 +112,86 @@ export async function generateViewport(): Promise<Viewport> {
   return { width: "device-width", initialScale: 1, viewportFit: "cover" };
 }
 
-export default async function LocaleLayout({ children, params }: { children: ReactNode; params: Promise<{ locale: string }> }) {
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
   const { locale: raw } = await params;
   if (!isLocale(raw)) notFound();
   const locale: Locale = raw;
   setRequestLocale(locale);
 
-  const [profile, theme, content, operatingHours, categories, messages, t] = await Promise.all([
-    orNull(getStoreProfile, "store profile"),
-    orNull(getTheme, "theme"),
-    orNull(getContent, "storefront content"),
-    orNull(getOperatingHours, "operating hours"),
-    orNull(getCategories, "categories"),
-    getMessages(),
-    getTranslations({ locale, namespace: "common" }),
-  ]);
+  const [profile, theme, content, operatingHours, categories, messages, t] =
+    await Promise.all([
+      orNull(getStoreProfile, "store profile"),
+      orNull(getTheme, "theme"),
+      orNull(getContent, "storefront content"),
+      orNull(getOperatingHours, "operating hours"),
+      orNull(getCategories, "categories"),
+      getMessages(),
+      getTranslations({ locale, namespace: "common" }),
+    ]);
 
   const css = brandCss(theme);
   // The footer is part of a statically rendered layout, so it carries the week and the upcoming exceptions but no
   // "today" (which would go stale); checkout, which is dynamic, says how today stands.
-  const hours = buildHoursView(operatingHours, { locale, timeZone: storeTimeZone(), now: new Date(), closedLabel: t("hoursClosed"), showToday: false });
-  const allowVisitorGround = Boolean(theme?.theme.darkEnabled && theme.theme.allowVisitorChoice);
+  const hours = buildHoursView(operatingHours, {
+    locale,
+    timeZone: storeTimeZone(),
+    now: new Date(),
+    closedLabel: t("hoursClosed"),
+    showToday: false,
+  });
+  const allowVisitorGround = Boolean(
+    theme?.theme.darkEnabled && theme.theme.allowVisitorChoice,
+  );
   const whatsApp = whatsAppChatUrl(profile?.contact?.whatsApp);
 
   return (
-    <html lang={locale} dir={directionOf(locale)} className={fontVariables} {...htmlThemeAttributes(theme)} suppressHydrationWarning>
+    <html
+      lang={locale}
+      dir={directionOf(locale)}
+      className={fontVariables}
+      {...htmlThemeAttributes(theme)}
+      suppressHydrationWarning
+    >
       <head>
         {/* A literal string from a plain module — see lib/theme/ground-script.ts for why that matters. */}
-        {allowVisitorGround ? <script dangerouslySetInnerHTML={{ __html: groundScript }} /> : null}
+        {allowVisitorGround ? (
+          <script dangerouslySetInnerHTML={{ __html: groundScript }} />
+        ) : null}
         {css ? <style dangerouslySetInnerHTML={{ __html: css }} /> : null}
       </head>
       <body>
-        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-50 focus:bg-canvas focus:px-4 focus:py-2">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-50 focus:bg-canvas focus:px-4 focus:py-2"
+        >
           {t("skipToContent")}
         </a>
         <NextIntlClientProvider locale={locale} messages={messages}>
           {profile ? (
-            <AppProviders store={{ currency: profile.currency, timeZone: storeTimeZone(), storeName: profile.name, allowVisitorGround, supportedLocales: resolveStoreLocales(profile).supported }}>
+            <AppProviders
+              store={{
+                currency: profile.currency,
+                timeZone: storeTimeZone(),
+                storeName: profile.name,
+                allowVisitorGround,
+                supportedLocales: resolveStoreLocales(profile).supported,
+              }}
+            >
               <JsonLd
                 data={storeJsonLd({
                   origin: siteOrigin(),
                   locale,
                   name: localized(profile.name, locale),
-                  description: localized(profile.description, locale) || localized(profile.tagline, locale) || undefined,
+                  description:
+                    localized(profile.description, locale) ||
+                    localized(profile.tagline, locale) ||
+                    undefined,
                   logoUrl: profile.logo?.secureUrl,
                   imageUrl: profile.ogImage?.secureUrl,
                   phone: profile.contact?.phone,
@@ -133,10 +205,20 @@ export default async function LocaleLayout({ children, params }: { children: Rea
                   tag manager or analytics provider is ever added, <CookieNotice /> (components/chrome/cookie-notice.tsx) is
                   mounted here again, first in the tree, before anything is collected. */}
               <AnnouncementBar announcement={content?.announcement ?? null} />
-              <Header storeName={localized(profile.name, locale)} navigation={content?.headerNavigation ?? []} categories={categories ?? []} />
+              <Header
+                storeName={localized(profile.name, locale)}
+                navigation={content?.headerNavigation ?? []}
+                categories={categories ?? []}
+              />
               <main id="main">{children}</main>
               <NewsletterSection />
-              <Footer profile={profile} footerNavigation={content?.footerNavigation ?? []} legalLinks={content?.legalLinks ?? []} categories={categories ?? []} hours={hours} />
+              <Footer
+                profile={profile}
+                footerNavigation={content?.footerNavigation ?? []}
+                legalLinks={content?.legalLinks ?? []}
+                categories={categories ?? []}
+                hours={hours}
+              />
               <MobileTabBar categories={categories ?? []} />
               <AddedSheet />
               {whatsApp ? <FloatingWhatsApp url={whatsApp} /> : null}
@@ -145,6 +227,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
             <StoreUnavailable />
           )}
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   );

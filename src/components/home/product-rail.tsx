@@ -1,25 +1,24 @@
-import { Reveal } from "@/components/ui/reveal";
+import { getTranslations } from "next-intl/server";
 import type { CardProduct } from "@/lib/catalog/card-model";
-import { MOTION } from "@/lib/motion/tokens";
 import { GiftCard } from "./gift-card";
+import { RailScroller } from "./rail-scroller";
 
 /**
- * Phone: one big card per view — swipe, snap, and a sliver of the next as the cue.
- * Tablet: two and a bit. Desktop: a 4-up grid, no scroll.
- *
- * `contain: paint` on the scroller is load-bearing: without it, in RTL, Chrome
- * counted the rail's scrolled-away cards as page overflow once they had revealed.
+ * The one product row every home section uses — collection, category or newest, and the collection story's products.
+ * Always a horizontal rail: one big card and a sliver of the next on a phone, two and a bit on a tablet, three and a
+ * bit on a small laptop, four and a bit on desktop — the sliver is the cue that it scrolls. Swipe or trackpad, plus
+ * arrows from `lg`. The card is the storefront's own (GiftCard: image, name, price, favourite, add to cart).
  */
-export function ProductRail({ items }: { items: CardProduct[] }) {
+export async function ProductRail({ items }: { items: CardProduct[] }) {
+  const t = await getTranslations("common");
   return (
-    <ul className="-mx-[var(--sf-gutter)] flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-[var(--sf-gutter)] px-[var(--sf-gutter)] pb-3 [scrollbar-width:none] max-lg:[contain:paint] lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-5 lg:overflow-visible lg:px-0 lg:pb-0">
-      {items.map((product, index) => (
-        <li key={product.slug} className="w-[calc(100%-2.5rem)] flex-none snap-start sm:w-[calc((100%-0.75rem)/2.15)] md:w-[calc((100%-1.5rem)/3.1)] lg:w-auto">
-          <Reveal className="h-full" delay={Math.min(index, 5) * MOTION.stagger}>
-            <GiftCard product={product} sizes="(min-width: 1024px) 24vw, (min-width: 640px) 45vw, 90vw" />
-          </Reveal>
+    <RailScroller previousLabel={t("railPrevious")} nextLabel={t("railNext")}>
+      {items.map((product) => (
+        <li key={product.slug} className="w-[calc(100%-2.5rem)] flex-none snap-start sm:w-[calc((100%-0.75rem)/2.15)] md:w-[calc((100%-1.5rem)/3.1)] lg:w-[calc((100%-3.75rem)/4.25)]">
+          {/* No scroll-reveal on cards: a card scrolled in sideways never crosses the page viewport's edge, so it would stay invisible. */}
+          <GiftCard product={product} sizes="(min-width: 1024px) 23vw, (min-width: 640px) 45vw, 90vw" />
         </li>
       ))}
-    </ul>
+    </RailScroller>
   );
 }

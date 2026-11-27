@@ -146,6 +146,8 @@
   "paymentInstapay": "إنستاباي",
   "paymentVodafoneCash": "فودافون كاش",
   "pagination": "الصفحات",
+  "railPrevious": "عرض السابق",
+  "railNext": "عرض التالي",
   "previousPage": "السابق",
   "nextPage": "التالي",
   "pageOf": "صفحة {page} من {pages}",

@@ -146,6 +146,8 @@
   "paymentInstapay": "InstaPay",
   "paymentVodafoneCash": "Vodafone Cash",
   "pagination": "Pages",
+  "railPrevious": "Scroll back",
+  "railNext": "Scroll forward",
   "previousPage": "Previous",
   "nextPage": "Next",
   "pageOf": "Page {page} of {pages}",

@@ -5,6 +5,7 @@ import { getCategories, getCollections, getContent, getDeliveryZones, getFulfilm
 import { toCardProduct } from "@/lib/catalog/card-model";
 import { loadPromotionBadges } from "@/lib/catalog/promotion-badges";
 import { HomeSectionView, type HomeData } from "@/components/home/sections";
+import { railQuery } from "@/lib/home/rail-query";
 
 // = CATALOG_REVALIDATE_SECONDS (lib/cache/cache-tag.ts). Segment config must be a literal, so it is repeated here.
 export const revalidate = 300;
@@ -35,18 +36,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   // eslint-disable-next-line react-hooks/purity -- an async Server Component renders once per request or revalidation, not repeatedly; `now` is one stable instant for every badge on the page.
   const now = Date.now();
 
-  // One listing read per product-bearing section, in parallel.
+  // One listing read per product-bearing section, in parallel — the same read for every source (railQuery).
   const rails = new Map<number, ReturnType<typeof toCardProduct>[]>();
   await Promise.all(
     sections.map(async (section, index) => {
-      const collectionSlug = section.type === "collectionStory" ? section.collection.slug : section.type === "productRail" && section.source === "collection" ? section.collection?.slug : undefined;
-      if (section.type !== "productRail" && section.type !== "collectionStory") return;
-      const collectionId = collectionSlug ? collections?.find((collection) => collection.slug === collectionSlug)?._id : undefined;
-      if (collectionSlug && !collectionId) return;
-      // A "newest" rail asks for newest explicitly: the listing's default is the merchant's manual arrangement, which is
-      // what a collection rail shows.
-      const newest = section.type === "productRail" && section.source === "newest";
-      const page = await orNull(() => listProducts({ limit: 8, ...(collectionId ? { collectionId } : {}), ...(newest ? { sort: "newest" as const } : {}) }), `home rail ${index}`);
+      const query = railQuery(section, collections ?? [], categories ?? []);
+      if (!query) return;
+      const page = await orNull(() => listProducts(query), `home rail ${index}`);
       if (page) rails.set(index, page.data.map((product) => toCardProduct(product, locale, categories ?? [], now, badges)));
     })
   );

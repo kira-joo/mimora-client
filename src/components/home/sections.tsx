@@ -13,6 +13,7 @@ import { CampaignHero } from "./hero";
 import { ProductRail } from "./product-rail";
 import { RibbonDivider } from "./ribbon-divider";
 import { SectionHead, ViewAll } from "./section-head";
+import { railHref } from "@/lib/home/rail-query";
 
 type Section<T extends HomeSection["type"]> = Extract<HomeSection, { type: T }>;
 
@@ -61,9 +62,10 @@ async function ProductRailSection({ section, locale, items, data, divided }: { s
   if (items.length === 0) return null;
   const t = await getTranslations("common");
   const collection = section.collection ? data.collections.find((candidate) => candidate.slug === section.collection?.slug) : undefined;
-  const title = localized(section.heading, locale) || (section.collection ? localized(section.collection.name, locale) : t("newest"));
+  const source = section.collection ?? section.category;
+  const title = localized(section.heading, locale) || (source ? localized(source.name, locale) : t("newest"));
   const subline = collection?.description ? localized(collection.description, locale) : undefined;
-  const href = section.collection ? `/collections/${section.collection.slug}` : "/products";
+  const href = railHref(section);
   return (
     <>
       {divided ? <RibbonDivider className="mt-6" /> : null}

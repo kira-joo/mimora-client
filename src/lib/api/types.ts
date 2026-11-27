@@ -80,7 +80,7 @@ export interface ResolvedEntity {
 export type HomeSection =
   | { type: "campaignHero"; headline: Localized; subline?: Localized; action?: { label: Localized; link: ResolvedLink }; image: ImageAsset | null }
   | { type: "collectionStory"; collection: ResolvedEntity; heading?: Localized; body?: Localized }
-  | { type: "productRail"; source: "collection" | "newest"; collection?: Pick<ResolvedEntity, "slug" | "name">; heading?: Localized }
+  | { type: "productRail"; source: "collection" | "newest" | "category"; collection?: Pick<ResolvedEntity, "slug" | "name">; category?: Pick<ResolvedEntity, "slug" | "name">; heading?: Localized }
   | { type: "categoryTiles"; categories: ResolvedEntity[]; heading?: Localized }
   | { type: "editorialBand"; headline: Localized; collection: ResolvedEntity }
   | { type: "assuranceStrip" };
